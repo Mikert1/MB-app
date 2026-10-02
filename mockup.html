@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workium — Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Palette — same roles as Planium's style.css, brand hue moved
+   from blue (#0659E5) to a crimson red at the same saturation
+   and lightness. Everything else is Planium's dark ramp.
+   ============================================================ */
+:root{
+  color-scheme: dark;
+
+  --bg-app:#050909;
+  --bg-deep:#070B0B;
+  --bg-inset:#0E1214;
+  --bg-card:#131619;
+  --bg-raised:#1a1f25;
+  --bg-slate:#263238;
+  --bg-chip:#2B3038;
+  --bg-selected:#241317;
+  --divider:#1a1414;
+
+  --text-bright:#ffffff;
+  --text-primary:#f0f0f0;
+  --text-secondary:#999999;
+  --text-muted:#888888;
+  --text-dim:#777777;
+  --text-faint:#555555;
+  --text-ghost:#333333;
+
+  /* accent (brand red) */
+  --accent:#E5063C;
+  --accent-deep:#A3042D;
+  --accent-soft:#FF668C;
+  --accent-tint:rgba(229,6,60,.10);
+  --accent-line:rgba(229,6,60,.22);
+
+  --warning:#FFBB00;
+  --orange:#FF9500;
+  --success:#5ECB7F;
+  --success-tint:rgba(94,203,127,.14);
+
+  --board-bg:#0a0d0e;
+  --frame-edge:#1f2429;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--board-bg);
+  color:var(--text-primary);
+  font-family:'Nunito',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- board chrome ---------- */
+.board{padding:28px 16px 60px}
+.boardHead{max-width:1280px;margin:0 auto 26px;display:flex;flex-direction:column;gap:10px}
+.brandRow{display:flex;align-items:center;gap:11px}
+.brandMark{
+  width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
+  background:var(--accent);color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;
+}
+.brandName{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.5rem;margin:0;color:var(--text-bright);line-height:1.1}
+.brandTag{margin:2px 0 0;color:var(--text-dim);font-size:.88rem}
+.boardNote{margin:0;color:var(--text-muted);font-size:.9rem;max-width:66ch;line-height:1.55}
+.boardNote b{color:var(--text-secondary)}
+
+.frames{
+  display:flex;gap:30px;justify-content:center;align-items:flex-start;
+  overflow-x:auto;padding:6px 2px 10px;
+}
+.frameWrap{flex:0 0 auto;width:390px;display:flex;flex-direction:column;gap:12px}
+.frameLabel{display:flex;align-items:baseline;gap:8px}
+.frameLabel b{font-size:.95rem;color:var(--text-bright)}
+.frameLabel span{font-size:.78rem;color:var(--text-dim)}
+.frameCap{margin:0;font-size:.8rem;color:var(--text-dim);line-height:1.55}
+
+/* ---------- phone frame ---------- */
+.frame{
+  position:relative;width:390px;height:800px;border-radius:38px;
+  border:1px solid var(--frame-edge);background:var(--bg-app);overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,.55);
+}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+.page{display:none;flex:1;min-height:0;flex-direction:column}
+.frame[data-page="week"]  .page[data-name="week"],
+.frame[data-page="avail"] .page[data-name="avail"],
+.frame[data-page="add"]   .page[data-name="add"]{display:flex}
+
+/* ---------- page header ---------- */
+.hdr{padding:26px 18px 12px;background:var(--bg-app);flex:0 0 auto}
+.hdrTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hdrTitle{margin:0;font-size:1.45rem;font-weight:800;color:var(--text-bright);letter-spacing:-.01em}
+.hdrSub{margin:3px 0 0;font-size:.82rem;color:var(--text-dim)}
+.iconBtn{
+  width:36px;height:36px;border-radius:12px;border:none;background:var(--bg-card);
+  color:var(--text-secondary);display:grid;place-items:center;cursor:pointer;flex:0 0 auto;
+}
+.iconBtn:hover{color:var(--text-bright);background:var(--bg-raised)}
+.stepper{display:flex;align-items:center;gap:4px}
+
+/* ---------- scroll body ---------- */
+.body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 18px 118px;scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+
+/* ---------- generic bits ---------- */
+.card{background:var(--bg-card);border-radius:14px}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:8px;
+  background:var(--bg-chip);color:var(--text-secondary);font-size:.7rem;font-weight:600;white-space:nowrap;
+}
+.chip svg{width:11px;height:11px;flex:0 0 auto}
+.chip.accent{background:var(--accent-tint);color:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-line)}
+.chip.warn{background:rgba(255,187,0,.12);color:var(--warning)}
+.chip.ok{background:var(--success-tint);color:var(--success)}
+.chip.ghost{background:transparent;color:var(--text-faint);box-shadow:inset 0 0 0 1px #20262c}
+.sectionLabel{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:20px 2px 9px;font-size:.72rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--text-faint);
+}
+.sectionLabel .plain{letter-spacing:0;text-transform:none;font-weight:600;color:var(--text-dim)}
+
+/* ---------- page 1 : my week ---------- */
+.capCard{padding:14px 15px;margin-top:6px}
+.capTop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:11px}
+.capBig{font-size:1.35rem;font-weight:800;color:var(--text-bright);line-height:1}
+.capBig small{font-size:.8rem;font-weight:600;color:var(--text-dim)}
+.capUnder{font-size:.74rem;color:var(--text-dim);margin-top:4px}
+.capMeta{font-size:.72rem;color:var(--text-dim);text-align:right;line-height:1.5}
+.bar{height:8px;border-radius:5px;background:var(--bg-inset);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar i.filled{background:var(--accent)}
+.bar i.soft{background:var(--accent-deep)}
+.capLegend{display:flex;gap:13px;margin-top:9px;font-size:.68rem;color:var(--text-dim)}
+.capLegend span{display:flex;align-items:center;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:0 0 auto}
+
+.nudge{
+  display:flex;align-items:center;gap:11px;padding:12px 14px;margin-top:10px;border-radius:14px;
+  background:var(--accent-tint);box-shadow:inset 0 0 0 1px var(--accent-line);cursor:pointer;
+}
+.nudge .nIcon{width:30px;height:30px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;flex:0 0 auto}
+.nudge p{margin:0;font-size:.84rem;font-weight:700;color:var(--text-bright)}
+.nudge small{display:block;font-weight:400;color:var(--accent-soft);font-size:.74rem;margin-top:2px}
+.nudge .chev{margin-left:auto;color:var(--accent-soft);display:flex}
+
+.day{margin-top:18px}
+.dayHead{display:flex;align-items:center;gap:9px;margin:0 2px 8px}
+.dayNum{
+  width:30px;height:30px;border-radius:10px;background:var(--bg-raised);color:var(--text-secondary);
+  display:grid;place-items:center;font-size:.85rem;font-weight:800;flex:0 0 auto;
+}
+.dayName{font-size:.86rem;font-weight:700;color:var(--text-primary)}
+.dayLoad{margin-left:auto;font-size:.72rem;color:var(--text-dim)}
+.day.today .dayNum{background:var(--accent);color:#fff}
+.day.today .dayName{color:var(--text-bright)}
+.day.past{opacity:.45}
+
+.job{display:flex;gap:11px;padding:12px 13px;border-radius:13px;background:var(--bg-card);margin-bottom:8px}
+.job .time{flex:0 0 50px;font-size:.78rem;font-weight:800;color:var(--text-bright);line-height:1.4}
+.job .time small{display:block;font-weight:600;color:var(--text-faint);font-size:.72rem}
+.job .rail{flex:0 0 3px;border-radius:3px;background:var(--bg-chip)}
+.job.p-urgent .rail{background:var(--accent)}
+.job.p-high .rail{background:var(--warning)}
+.job.done .rail{background:var(--success)}
+.job .meat{min-width:0;flex:1}
+.job h4{margin:0 0 3px;font-size:.92rem;font-weight:700;color:var(--text-bright);line-height:1.3}
+.job .sub{margin:0;font-size:.76rem;color:var(--text-dim);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.job .sub svg{width:11px;height:11px;opacity:.85;flex:0 0 auto}
+.job .chips{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.job.done h4{color:var(--text-secondary)}
+
+.emptyDay{
+  padding:14px;border-radius:13px;text-align:center;font-size:.78rem;color:var(--text-faint);
+  border:1px dashed #1e242a;
+}
+
+/* ---------- page 2 : available work ---------- */
+.filterRow{
+  display:flex;gap:7px;overflow-x:auto;margin:10px -18px 0;padding:0 18px 4px;
+  scrollbar-width:none;
+}
+.filterRow::-webkit-scrollbar{display:none}
+.fchip{
+  flex:0 0 auto;padding:7px 13px;border-radius:999px;font-size:.76rem;font-weight:700;cursor:pointer;
+  background:var(--bg-card);color:var(--text-secondary);border:1px solid transparent;font-family:inherit;
+}
+.fchip.on{background:var(--accent);color:#fff}
+.fchip .cnt{opacity:.6;font-weight:600;margin-left:4px}
+.sortRow{display:flex;align-items:center;justify-content:space-between;margin:12px 2px 10px}
+.sortRow span{font-size:.76rem;color:var(--text-dim)}
+.sortRow b{color:var(--text-secondary)}
+
+.wcard{display:flex;gap:12px;padding:13px;border-radius:14px;background:var(--bg-card);margin-bottom:9px}
+.wcard .rail{flex:0 0 3px;border-radius:3px;background:var(--bg-chip)}
+.wcard.p-urgent{background:var(--bg-selected)}
+.wcard.p-urgent .rail{background:var(--accent)}
+.wcard.p-high .rail{background:var(--warning)}
+.wcard .meat{flex:1;min-width:0}
+.wcard .titleRow{display:flex;align-items:flex-start;gap:8px}
+.wcard h4{margin:0;font-size:.95rem;font-weight:700;color:var(--text-bright);line-height:1.3;flex:1}
+.prio{
+  flex:0 0 auto;font-size:.62rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  padding:3px 7px;border-radius:7px;background:var(--bg-chip);color:var(--text-muted);margin-top:1px;
+}
+.prio.urgent{background:var(--accent);color:#fff}
+.prio.high{background:rgba(255,187,0,.14);color:var(--warning)}
+.wcard .sub{margin:5px 0 0;font-size:.78rem;color:var(--text-dim);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.wcard .sub svg{width:11px;height:11px;opacity:.85;flex:0 0 auto}
+.wcard .chips{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+.wcard .foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px}
+.wcard .age{font-size:.7rem;color:var(--text-faint)}
+.planBtn{
+  border:none;cursor:pointer;padding:7px 15px;border-radius:10px;font-family:inherit;
+  font-size:.78rem;font-weight:800;background:var(--accent);color:#fff;flex:0 0 auto;
+}
+.planBtn.quiet{background:var(--bg-raised);color:var(--text-secondary)}
+.incomplete{
+  display:flex;align-items:center;gap:8px;margin-top:9px;padding:8px 10px;border-radius:10px;
+  background:var(--bg-inset);font-size:.73rem;color:var(--text-dim);line-height:1.4;
+}
+.incomplete svg{width:13px;height:13px;color:var(--warning);flex:0 0 auto}
+.incomplete b{color:var(--text-secondary);font-weight:700}
+
+/* ---------- page 3 : add work ---------- */
+.hint{
+  display:flex;gap:10px;padding:11px 13px;border-radius:13px;background:var(--bg-inset);
+  margin:6px 0 18px;font-size:.78rem;color:var(--text-dim);line-height:1.5;
+}
+.hint svg{width:14px;height:14px;color:var(--accent-soft);flex:0 0 auto;margin-top:3px}
+.hint b{color:var(--text-secondary)}
+
+.field{margin-bottom:17px}
+.lbl{display:flex;align-items:center;gap:6px;margin:0 0 7px;font-size:.76rem;font-weight:700;color:var(--text-secondary)}
+.lbl .req{color:var(--accent);font-size:.95rem;line-height:1}
+.lbl .opt{margin-left:auto;font-weight:600;font-size:.7rem;color:var(--text-faint)}
+.inp{
+  width:100%;padding:13px 14px;border-radius:12px;border:1px solid #1e242a;background:var(--bg-card);
+  color:var(--text-primary);font-family:inherit;font-size:.9rem;outline:none;
+}
+.inp::placeholder{color:var(--text-faint)}
+.inp:focus{border-color:var(--accent);background:var(--bg-raised)}
+.inp.big{font-size:1.02rem;font-weight:700;padding:15px 14px}
+textarea.inp{resize:none;min-height:80px;line-height:1.5}
+.inpNote{display:flex;align-items:center;gap:6px;margin:7px 0 0;font-size:.71rem;color:var(--accent-soft)}
+.inpNote svg{width:11px;height:11px;flex:0 0 auto}
+
+.clientPick{
+  display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:12px;
+  background:var(--bg-card);border:1px solid var(--accent-line);cursor:pointer;
+}
+.avatar{
+  width:33px;height:33px;border-radius:10px;background:var(--bg-slate);color:var(--text-bright);
+  display:grid;place-items:center;font-size:.76rem;font-weight:800;flex:0 0 auto;
+}
+.clientPick p{margin:0;font-size:.88rem;font-weight:700;color:var(--text-bright)}
+.clientPick small{display:block;font-weight:400;font-size:.73rem;color:var(--text-dim);margin-top:1px}
+.clientPick .x{margin-left:auto;color:var(--text-faint);font-size:1.15rem;line-height:1}
+
+.quick{display:flex;gap:6px;flex-wrap:wrap}
+.qchip{
+  padding:7px 13px;border-radius:999px;font-size:.76rem;font-weight:700;cursor:pointer;
+  background:var(--bg-card);color:var(--text-secondary);border:1px solid #1e242a;font-family:inherit;
+}
+.qchip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.seg{display:flex;gap:4px;padding:4px;border-radius:13px;background:var(--bg-inset)}
+.seg button{
+  flex:1;padding:9px 0;border:none;border-radius:10px;background:transparent;cursor:pointer;
+  font-family:inherit;font-size:.78rem;font-weight:700;color:var(--text-dim);
+}
+.seg button.on{background:var(--bg-raised);color:var(--text-primary)}
+.seg button.on[data-p="high"]{background:rgba(255,187,0,.14);color:var(--warning);box-shadow:inset 0 0 0 1px rgba(255,187,0,.3)}
+.seg button.on[data-p="urgent"]{background:var(--accent-deep);color:#fff;box-shadow:inset 0 0 0 1px var(--accent)}
+
+.actions{display:flex;flex-direction:column;gap:9px;margin-top:22px}
+.btn{
+  width:100%;padding:15px;border-radius:14px;border:none;cursor:pointer;font-family:inherit;
+  font-size:.9rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.outline{background:transparent;color:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-line)}
+.btn svg{width:15px;height:15px;flex:0 0 auto}
+
+/* ---------- bottom nav (Planium's 5 slots + raised centre) ---------- */
+.nav{position:absolute;bottom:0;left:0;width:100%;height:88px;background:var(--bg-deep);z-index:9}
+.nav hr{height:2px;margin:0 0 11px;border:none;background:var(--bg-chip)}
+.navRow{display:flex;justify-content:space-between}
+.navItem{
+  width:20%;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;
+  color:var(--text-secondary);cursor:pointer;background:none;border:none;font-family:inherit;padding:0;
+}
+.navItem svg{width:24px;height:24px}
+.navItem p{margin:0;font-size:.68rem;font-weight:700}
+.navItem.on{color:var(--accent)}
+.navItem.soon{color:#3b4247;cursor:default}
+.soonTag{
+  position:absolute;top:-7px;right:8px;font-size:.5rem;font-weight:800;letter-spacing:.06em;
+  background:var(--bg-chip);color:var(--text-dim);padding:1px 4px;border-radius:4px;
+}
+.navCenter{width:20%;position:relative}
+.plusBtn{
+  position:absolute;left:50%;top:-26px;transform:translateX(-50%);
+  width:60px;height:60px;border-radius:30px;background:var(--bg-deep);border:none;cursor:pointer;
+  display:grid;place-items:center;color:var(--text-secondary);box-shadow:0 0 0 6px var(--bg-app);
+}
+.plusBtn svg{width:25px;height:25px}
+.plusLbl{position:absolute;left:0;width:100%;text-align:center;top:41px;margin:0;font-size:.68rem;font-weight:700;color:var(--text-secondary)}
+.frame[data-page="add"] .plusBtn{background:var(--accent);color:#fff;box-shadow:0 0 0 6px var(--bg-app),0 6px 18px rgba(229,6,60,.45)}
+.frame[data-page="add"] .plusLbl{color:var(--accent)}
+
+@media (max-width:900px){
+  .frames{justify-content:flex-start}
+  .board{padding:20px 16px 40px}
+}
+</style>
+</head>
+<body>
+
+<div class="board">
+  <div class="boardHead">
+    <div class="brandRow">
+      <div class="brandMark">W</div>
+      <div>
+        <p class="brandName">Workium</p>
+        <p class="brandTag">Work comes in, a planned week comes out — mockup, no backend</p>
+      </div>
+    </div>
+    <p class="boardNote">Planium's dark palette and layout language, brand hue moved from blue to crimson. Three of the five screens; the two remaining nav slots are marked <b>soon</b>. The nav inside every frame works — tap it to walk between pages. Name is a placeholder.</p>
+  </div>
+
+  <div class="frames">
+
+    <!-- ============ FRAME 1 ============ -->
+    <div class="frameWrap">
+      <div class="frameLabel"><b>1 · My week</b><span>what you committed to</span></div>
+      <div class="frame" data-page="week">
+        <div class="screen">
+
+          <!-- ===== PAGE: WEEK ===== -->
+          <div class="page" data-name="week">
+            <div class="hdr">
+              <div class="hdrTop">
+                <div>
+                  <h1 class="hdrTitle">My week</h1>
+                  <p class="hdrSub">Week 40 · 28 Sep – 4 Oct</p>
+                </div>
+                <div class="stepper">
+                  <button class="iconBtn" aria-label="Previous week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M15 18l-6-6 6-6"/></svg></button>
+                  <button class="iconBtn" aria-label="Next week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 18l6-6-6-6"/></svg></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="body">
+              <div class="card capCard">
+                <div class="capTop">
+                  <div>
+                    <div class="capBig">31,5u <small>/ 40u</small></div>
+                    <div class="capUnder">planned this week</div>
+                  </div>
+                  <div class="capMeta">9 jobs<br>8,5u free</div>
+                </div>
+                <div class="bar">
+                  <i class="soft" style="width:42%"></i>
+                  <i class="filled" style="width:37%"></i>
+                </div>
+                <div class="capLegend">
+                  <span><i class="dot" style="background:var(--accent-deep)"></i> done 17u</span>
+                  <span><i class="dot" style="background:var(--accent)"></i> ahead 14,5u</span>
+                  <span><i class="dot" style="background:var(--bg-inset)"></i> free 8,5u</span>
+                </div>
+              </div>
+
+              <div class="nudge" data-goto="avail">
+                <div class="nIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M12 9v4m0 3h.01"/><path d="M10.3 4.3 2.6 18A1.7 1.7 0 0 0 4.1 20.5h15.8A1.7 1.7 0 0 0 21.4 18L13.7 4.3a1.7 1.7 0 0 0-3 0z"/></svg></div>
+                <p>3 urgent jobs unplanned<small>One deadline is tomorrow</small></p>
+                <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 18l6-6-6-6"/></svg></span>
+              </div>
+
+              <div class="sectionLabel"><span>Earlier this week</span><span class="plain">17u done</span></div>
+
+              <div class="day past">
+                <div class="dayHead"><div class="dayNum">28</div><div class="dayName">Monday</div><div class="dayLoad">2 jobs · 7u</div></div>
+                <div class="job done"><div class="time">08:00<small>11:00</small></div><div class="rail"></div><div class="meat"><h4>Boiler service — yearly check</h4><p class="sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> Bakkerij Van Dijk</p></div></div>
+                <div class="job done"><div class="time">12:00<small>16:00</small></div><div class="rail"></div><div class="meat"><h4>Replace 4 radiator valves</h4><p class="sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> VvE Parkzicht</p></div></div>
+              </div>
+
+              <div class="day past">
+                <div class="dayHead"><div class="dayNum">29</div><div class="dayName">Tuesday</div><div class="dayLoad">1 job · 6u</div></div>
+                <div class="job done"><div class="time">09:00<small>15:00</small></div><div class="rail"></div><div class="meat"><h4>Bathroom leak — trace &amp; repair</h4><p class="sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> M. Jansen</p></div></div>
+              </div>
+
+              <div class="day past">
+                <div class="dayHead"><div class="dayNum">30</div><div class="dayName">Wednesday</div><div class="dayLoad">1 job · 4u</div></div>
+                <div class="job done"><div class="time">13:00<small>17:00</small></div><div class="rail"></div><div class="meat"><h4>Kitchen tap replacement</h4><p class="sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> Café De Hoek</p></div></div>
+              </div>
+
+              <div class="sectionLabel"><span>Ahead</span><span class="plain">14,5u planned</span></div>
+
+              <div class="day today">
+                <div class="dayHead"><div class="dayNum">1</div><div class="dayName">Thursday · today</div><div class="dayLoad">2 jobs · 6,5u</div></div>
+                <div class="job p-urgent">
+                  <div class="time">08:30<small>12:00</small></div><div class="rail"></div>
+                  <div class="meat">
+                    <h4>No heating — whole building</h4>
+                    <p class="sub">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> VvE Parkzicht
+                      <span style="color:var(--text-ghost)">·</span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> Parklaan 12, Utrecht
+                    </p>
+                    <div class="chips">
+                      <span class="chip accent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5m0 3h.01"/></svg>Urgent</span>
+                      <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>3,5u</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="job">
+                  <div class="time">13:30<small>16:30</small></div><div class="rail"></div>
+                  <div class="meat">
+                    <h4>Install 2 outdoor taps</h4>
+                    <p class="sub">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> Hoveniersbedrijf Groen
+                      <span style="color:var(--text-ghost)">·</span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> Nieuwegein
+                    </p>
+                    <div class="chips"><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>3u</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="day">
+                <div class="dayHead"><div class="dayNum">2</div><div class="dayName">Friday</div><div class="dayLoad">2 jobs · 8u</div></div>
+                <div class="job p-high">
+                  <div class="time">08:00<small>12:00</small></div><div class="rail"></div>
+                  <div class="meat">
+                    <h4>Shower drain blocked</h4>
+                    <p class="sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> Hotel Centraal</p>
+                    <div class="chips"><span class="chip warn">High</span><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>4u</span></div>
+                  </div>
+                </div>
+                <div class="job">
+                  <div class="time">13:00<small>17:00</small></div><div class="rail"></div>
+                  <div class="meat">
+                    <h4>Quote visit — full bathroom</h4>
+                    <p class="sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> Fam. De Vries</p>
+                    <div class="chips"><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>4u</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="day">
+                <div class="dayHead"><div class="dayNum">3</div><div class="dayName">Saturday</div><div class="dayLoad">free</div></div>
+                <div class="emptyDay">Nothing planned — drop a job here</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== PAGE: AVAILABLE ===== -->
+          <div class="page" data-name="avail">
+            <div class="hdr">
+              <div class="hdrTop">
+                <div>
+                  <h1 class="hdrTitle">Available work</h1>
+                  <p class="hdrSub">12 jobs waiting · 46u of work</p>
+                </div>
+                <button class="iconBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" width="16" height="16"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+              </div>
+              <div class="filterRow">
+                <button class="fchip on">All<span class="cnt">12</span></button>
+                <button class="fchip">Urgent<span class="cnt">3</span></button>
+                <button class="fchip">Deadline this week<span class="cnt">5</span></button>
+                <button class="fchip">Incomplete<span class="cnt">4</span></button>
+              </div>
+            </div>
+
+            <div class="body">
+              <div class="sortRow">
+                <span>Sorted by <b>oldest first</b>, urgent on top</span>
+                <button class="iconBtn" style="width:28px;height:28px;border-radius:9px" aria-label="Change sorting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" width="14" height="14"><path d="M4 7h16M7 12h10M10 17h4"/></svg></button>
+              </div>
+
+              <div class="wcard p-urgent">
+                <div class="rail"></div>
+                <div class="meat">
+                  <div class="titleRow"><h4>Water meter leaking in cellar</h4><span class="prio urgent">Urgent</span></div>
+                  <p class="sub">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> Slagerij Timmer
+                    <span style="color:var(--text-ghost)">·</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> Dorpsstraat 8, Houten
+                  </p>
+                  <div class="chips">
+                    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>2u</span>
+                    <span class="chip accent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>Deadline tomorrow</span>
+                  </div>
+                  <div class="foot"><span class="age">Added 2 hours ago</span><button class="planBtn">Plan</button></div>
+                </div>
+              </div>
+
+              <div class="wcard p-urgent">
+                <div class="rail"></div>
+                <div class="meat">
+                  <div class="titleRow"><h4>Gas smell reported — check line</h4><span class="prio urgent">Urgent</span></div>
+                  <p class="sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> Kantoor Veldhuis</p>
+                  <div class="chips">
+                    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>1,5u</span>
+                    <span class="chip accent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>Deadline today</span>
+                  </div>
+                  <div class="foot"><span class="age">Added yesterday, 16:40</span><button class="planBtn">Plan</button></div>
+                </div>
+              </div>
+
+              <div class="sectionLabel"><span>Oldest first</span></div>
+
+              <div class="wcard p-high">
+                <div class="rail"></div>
+                <div class="meat">
+                  <div class="titleRow"><h4>Replace mixer tap, 3 rooms</h4><span class="prio high">High</span></div>
+                  <p class="sub">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> Hotel Centraal
+                    <span style="color:var(--text-ghost)">·</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> Utrecht
+                  </p>
+                  <div class="chips">
+                    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>5u</span>
+                    <span class="chip warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>Before 10 Oct</span>
+                  </div>
+                  <div class="foot"><span class="age">Added 6 days ago</span><button class="planBtn">Plan</button></div>
+                </div>
+              </div>
+
+              <div class="wcard">
+                <div class="rail"></div>
+                <div class="meat">
+                  <div class="titleRow"><h4>Toilet keeps running</h4><span class="prio">Normal</span></div>
+                  <p class="sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> P. Mulder</p>
+                  <div class="incomplete">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 3h.01"/><path d="M10.3 4.3 2.6 18A1.7 1.7 0 0 0 4.1 20.5h15.8A1.7 1.7 0 0 0 21.4 18L13.7 4.3a1.7 1.7 0 0 0-3 0z"/></svg>
+                    <span><b>Still missing:</b> estimate, location, deadline</span>
+                  </div>
+                  <div class="foot"><span class="age">Added 4 days ago by Sanne</span><button class="planBtn quiet">Complete</button></div>
+                </div>
+              </div>
+
+              <div class="wcard">
+                <div class="rail"></div>
+                <div class="meat">
+                  <div class="titleRow"><h4>Yearly maintenance contract — 8 units</h4><span class="prio">Normal</span></div>
+                  <p class="sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> VvE Parkzicht</p>
+                  <div class="chips">
+                    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>2 days</span>
+                    <span class="chip ghost">No deadline</span>
+                  </div>
+                  <div class="foot"><span class="age">Added 2 weeks ago</span><button class="planBtn">Plan</button></div>
+                </div>
+              </div>
+
+              <div class="wcard">
+                <div class="rail"></div>
+                <div class="meat">
+                  <div class="titleRow"><h4>Call back about garden tap</h4><span class="prio">Low</span></div>
+                  <p class="sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> Hoveniersbedrijf Groen</p>
+                  <div class="chips"><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>30m</span><span class="chip ghost">No deadline</span></div>
+                  <div class="foot"><span class="age">Added 3 weeks ago</span><button class="planBtn">Plan</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== PAGE: ADD ===== -->
+          <div class="page" data-name="add">
+            <div class="hdr">
+              <div class="hdrTop">
+                <div>
+                  <h1 class="hdrTitle">New job</h1>
+                  <p class="hdrSub">Takes 5 seconds · finish it later</p>
+                </div>
+                <button class="iconBtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" width="16" height="16"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+              </div>
+            </div>
+
+            <div class="body">
+              <div class="hint">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-5M12 8h.01"/></svg>
+                <span>On the phone with someone? <b>Only the title is required.</b> Save it now — the job lands in Available work marked incomplete, and anyone can fill the rest in later.</span>
+              </div>
+
+              <div class="field">
+                <p class="lbl">What needs doing <span class="req">*</span></p>
+                <input class="inp big" value="Boiler making noise, no hot water">
+              </div>
+
+              <div class="field">
+                <p class="lbl">Client <span class="opt">optional</span></p>
+                <div class="clientPick">
+                  <div class="avatar">PZ</div>
+                  <div><p>VvE Parkzicht</p><small>Parklaan 12, Utrecht · 4 jobs this year</small></div>
+                  <span class="x">&times;</span>
+                </div>
+              </div>
+
+              <div class="field">
+                <p class="lbl">Location <span class="opt">optional</span></p>
+                <input class="inp" value="Parklaan 12, 3500 AA Utrecht">
+                <p class="inpNote">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  Filled in from the client — change it for a one-off address
+                </p>
+              </div>
+
+              <div class="field">
+                <p class="lbl">Estimated time <span class="opt">optional</span></p>
+                <div class="quick">
+                  <button class="qchip" data-group="est">30m</button>
+                  <button class="qchip" data-group="est">1u</button>
+                  <button class="qchip on" data-group="est">2u</button>
+                  <button class="qchip" data-group="est">4u</button>
+                  <button class="qchip" data-group="est">1 day</button>
+                  <button class="qchip" data-group="est">Other…</button>
+                </div>
+              </div>
+
+              <div class="field">
+                <p class="lbl">Deadline <span class="opt">optional</span></p>
+                <div class="quick">
+                  <button class="qchip" data-group="dl">Today</button>
+                  <button class="qchip on" data-group="dl">Tomorrow</button>
+                  <button class="qchip" data-group="dl">This week</button>
+                  <button class="qchip" data-group="dl">Pick a date</button>
+                  <button class="qchip" data-group="dl">None</button>
+                </div>
+              </div>
+
+              <div class="field">
+                <p class="lbl">Priority</p>
+                <div class="seg">
+                  <button data-p="low">Low</button>
+                  <button data-p="normal" class="on">Normal</button>
+                  <button data-p="high">High</button>
+                  <button data-p="urgent">Urgent</button>
+                </div>
+              </div>
+
+              <div class="field">
+                <p class="lbl">Notes <span class="opt">optional</span></p>
+                <textarea class="inp" placeholder="Anything the caller said — gate code, who to ask for, parts needed…"></textarea>
+              </div>
+
+              <div class="actions">
+                <button class="btn primary">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  Save to available work
+                </button>
+                <button class="btn outline">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+                  Save &amp; plan it now
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== NAV ===== -->
+          <nav class="nav">
+            <hr>
+            <div class="navRow">
+              <button class="navItem" data-goto="week">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/><path d="M7.5 14h3M7.5 17.5h7"/></svg>
+                <p>My week</p>
+              </button>
+              <button class="navItem" data-goto="avail">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5.5 5.5h13L21 13v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4z"/></svg>
+                <p>Available</p>
+              </button>
+              <div class="navCenter">
+                <button class="plusBtn" data-goto="add" aria-label="Add work">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <p class="plusLbl">Add work</p>
+              </div>
+              <button class="navItem soon" disabled>
+                <span class="soonTag">SOON</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5"/><path d="M17 9.5a2.8 2.8 0 1 0 0-5.5"/><path d="M18 14.8c2 .6 3.5 2 3.5 4"/></svg>
+                <p>Clients</p>
+              </button>
+              <button class="navItem soon" disabled>
+                <span class="soonTag">SOON</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+                <p>Team</p>
+              </button>
+            </div>
+          </nav>
+
+        </div>
+      </div>
+      <p class="frameCap">Capacity bar up top, then the days. Days already gone dim down so today sits where your eye lands. A red strip beside a job means urgent, amber means high.</p>
+    </div>
+
+    <!-- ============ FRAME 2 ============ -->
+    <div class="frameWrap">
+      <div class="frameLabel"><b>2 · Available work</b><span>the pile you plan from</span></div>
+      <div class="frame" data-page="avail"><div class="screen"></div></div>
+      <p class="frameCap">Urgent jumps the queue, the rest is oldest first so nothing rots at the bottom. A job someone added in a hurry shows exactly what it is still missing.</p>
+    </div>
+
+    <!-- ============ FRAME 3 ============ -->
+    <div class="frameWrap">
+      <div class="frameLabel"><b>3 · Add work</b><span>built for mid-phone-call</span></div>
+      <div class="frame" data-page="add"><div class="screen"></div></div>
+      <p class="frameCap">One required field, everything else tappable instead of typeable. Linking a client fills the address in for you.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Frame 1 holds the real markup; frames 2 and 3 are clones of it, each opened
+// on a different page. Keeps the mockup to one copy of every screen.
+const source = document.querySelector('.frame .screen');
+document.querySelectorAll('.frame .screen:empty').forEach(slot => {
+  slot.replaceWith(source.cloneNode(true));
+});
+
+// Nav and in-page links switch the page of whichever frame they sit in.
+document.addEventListener('click', e => {
+  const goto = e.target.closest('[data-goto]');
+  if (goto) { goto.closest('.frame').dataset.page = goto.dataset.goto; return; }
+
+  const pick = e.target.closest('.fchip, .qchip, .seg button');
+  if (pick) {
+    const group = pick.matches('.fchip') ? '.fchip' : pick.matches('.qchip') ? '.qchip' : 'button';
+    pick.parentElement.querySelectorAll(group).forEach(c => c.classList.remove('on'));
+    pick.classList.add('on');
+  }
+});
+
+// Light the nav item that matches each frame's current page.
+const sync = () => document.querySelectorAll('.frame').forEach(f => {
+  f.querySelectorAll('.navItem[data-goto]').forEach(n =>
+    n.classList.toggle('on', n.dataset.goto === f.dataset.page));
+});
+new MutationObserver(sync).observe(document.body, {
+  attributes: true, subtree: true, attributeFilter: ['data-page']
+});
+sync();
+</script>
+</body>
+</html>

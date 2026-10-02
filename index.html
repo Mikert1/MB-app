@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050909">
+<meta name="description" content="Incoming work in, a planned week out.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Workium</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="boot">
+  <div class="bootMark"><i>W</i> Workium</div>
+</div>
+
+<div id="app" hidden>
+
+  <main id="main">
+
+    <!-- ============ PAGE 1 — MY WEEK ============ -->
+    <section class="page" data-page="week">
+      <header class="hdr">
+        <div class="hdrTop">
+          <div class="hdrText">
+            <h1 class="hdrTitle">My week</h1>
+            <p class="hdrSub" data-role="weekLabel">—</p>
+          </div>
+          <div class="stepper">
+            <button class="iconBtn" data-act="demoMenu" aria-label="Demo options">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>
+            </button>
+            <button class="iconBtn" data-act="prevWeek" aria-label="Previous week">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button class="iconBtn" data-act="nextWeek" aria-label="Next week">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="todayJump" data-act="thisWeek" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h13M11 7l5 5-5 5M20 5v14"/></svg>
+          Back to this week
+        </button>
+      </header>
+
+      <div class="body" data-role="weekBody"></div>
+    </section>
+
+    <!-- ============ PAGE 2 — AVAILABLE WORK ============ -->
+    <section class="page" data-page="avail">
+      <header class="hdr">
+        <div class="hdrTop">
+          <div class="hdrText">
+            <h1 class="hdrTitle">Available work</h1>
+            <p class="hdrSub" data-role="availSub">—</p>
+          </div>
+          <button class="iconBtn" data-act="toggleSearch" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          </button>
+        </div>
+
+        <div class="searchWrap" data-role="searchWrap" hidden>
+          <svg class="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input class="searchInp" data-role="search" type="search" placeholder="Title, client or location…" autocomplete="off">
+          <button class="searchClear" data-act="clearSearch" aria-label="Clear search">&times;</button>
+        </div>
+
+        <div class="filterRow" data-role="filters">
+          <button class="fchip on" data-filter="all">All<span class="cnt"></span></button>
+          <button class="fchip" data-filter="urgent">Urgent<span class="cnt"></span></button>
+          <button class="fchip" data-filter="week">Deadline this week<span class="cnt"></span></button>
+          <button class="fchip" data-filter="incomplete">Incomplete<span class="cnt"></span></button>
+        </div>
+      </header>
+
+      <div class="body" data-role="availBody">
+        <div class="sortRow">
+          <span>Sorted by <b data-role="sortLabel">oldest first</b>, urgent on top</span>
+          <button class="iconBtn small" data-act="sort" aria-label="Change sorting">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
+          </button>
+        </div>
+        <div data-role="availList"></div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE 3 — ADD WORK ============ -->
+    <section class="page" data-page="add">
+      <header class="hdr">
+        <div class="hdrTop">
+          <div class="hdrText">
+            <h1 class="hdrTitle">New job</h1>
+            <p class="hdrSub">Takes 5 seconds · finish it later</p>
+          </div>
+          <button class="iconBtn" data-act="resetForm" aria-label="Empty the form">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h18M8 5.5V3.5h8v2M6 5.5l1 14a2 2 0 0 0 2 1.9h6a2 2 0 0 0 2-1.9l1-14"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="body">
+        <div class="hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-5M12 8h.01"/></svg>
+          <span>On the phone with someone? <b>Only the title is required.</b> Save it now — the job lands in Available work marked incomplete, and anyone can fill the rest in later.</span>
+        </div>
+
+        <div data-role="addForm"></div>
+
+        <div class="actions">
+          <button class="btn primary" data-act="save">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            Save to available work
+          </button>
+          <button class="btn outline" data-act="saveAndPlan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+            Save &amp; plan it now
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <nav class="nav">
+    <hr>
+    <div class="navRow">
+      <button class="navItem" data-goto="week">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/><path d="M7.5 14h3M7.5 17.5h7"/></svg>
+        <p>My week</p>
+      </button>
+      <button class="navItem" data-goto="avail">
+        <span class="navBadge" data-role="availBadge" hidden></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5.5 5.5h13L21 13v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4z"/></svg>
+        <p>Available</p>
+      </button>
+      <div class="navCenter">
+        <button class="plusBtn" data-goto="add" aria-label="Add work">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <p class="plusLbl">Add work</p>
+      </div>
+      <button class="navItem soon" data-soon="Clients">
+        <span class="soonTag">SOON</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5"/><path d="M17 9.5a2.8 2.8 0 1 0 0-5.5"/><path d="M18 14.8c2 .6 3.5 2 3.5 4"/></svg>
+        <p>Clients</p>
+      </button>
+      <button class="navItem soon" data-soon="Team">
+        <span class="soonTag">SOON</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+        <p>Team</p>
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- ============ SHEET HOST ============ -->
+<div id="sheetHost" class="sheetHost" hidden>
+  <div class="sheetBackdrop" data-act="closeSheet"></div>
+  <div class="sheet" role="dialog" aria-modal="true"></div>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+
+
+<!-- ======================================================
+     TEMPLATES — every repeated block lives here; JS clones
+     one and only fills in text, attributes and visibility.
+     ====================================================== -->
+
+<template id="tpl-capacity">
+  <div class="card capCard">
+    <div class="capTop">
+      <div>
+        <div class="capBig"><span data-role="planned">0u</span> <small>/ <span data-role="target">40u</span></small></div>
+        <div class="capUnder" data-role="capUnder">planned this week</div>
+      </div>
+      <div class="capMeta"><span data-role="jobCount">0 jobs</span><br><span data-role="freeLabel">0u free</span></div>
+    </div>
+    <div class="bar">
+      <i class="soft" data-role="barDone"></i>
+      <i class="filled" data-role="barAhead"></i>
+      <i class="over" data-role="barOver"></i>
+    </div>
+    <div class="capLegend">
+      <span><i class="dot dotDone"></i> done <span data-role="legendDone">0u</span></span>
+      <span><i class="dot dotAhead"></i> ahead <span data-role="legendAhead">0u</span></span>
+      <span data-role="legendFreeWrap"><i class="dot dotFree"></i> free <span data-role="legendFree">0u</span></span>
+      <span data-role="legendOverWrap" hidden><i class="dot dotOver"></i> over <span data-role="legendOver">0u</span></span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-nudge">
+  <button class="nudge" data-goto="avail">
+    <span class="nIcon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 3h.01"/><path d="M10.3 4.3 2.6 18A1.7 1.7 0 0 0 4.1 20.5h15.8A1.7 1.7 0 0 0 21.4 18L13.7 4.3a1.7 1.7 0 0 0-3 0z"/></svg>
+    </span>
+    <span class="nText">
+      <b data-role="nudgeTitle">—</b>
+      <small data-role="nudgeSub">—</small>
+    </span>
+    <span class="chev">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </span>
+  </button>
+</template>
+
+<template id="tpl-sectionLabel">
+  <div class="sectionLabel"><span data-role="label"></span><span class="plain" data-role="aside"></span></div>
+</template>
+
+<template id="tpl-day">
+  <div class="day">
+    <div class="dayHead">
+      <div class="dayNum" data-role="num"></div>
+      <div class="dayName" data-role="name"></div>
+      <div class="dayLoad" data-role="load"></div>
+    </div>
+    <div data-role="jobs"></div>
+  </div>
+</template>
+
+<template id="tpl-weekJob">
+  <button class="job">
+    <span class="time"><b data-role="start"></b><small data-role="end"></small></span>
+    <span class="rail"></span>
+    <span class="meat">
+      <span class="jobTitle" data-role="title"></span>
+      <span class="sub">
+        <span class="subBit" data-role="clientWrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+          <span data-role="client"></span>
+        </span>
+        <span class="sep" data-role="sep">·</span>
+        <span class="subBit" data-role="locWrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <span data-role="location"></span>
+        </span>
+      </span>
+      <span class="chips" data-role="chips"></span>
+    </span>
+  </button>
+</template>
+
+<template id="tpl-emptyDay">
+  <button class="emptyDay" data-goto="avail">Nothing planned — pick something from Available work</button>
+</template>
+
+<template id="tpl-availCard">
+  <div class="wcard">
+    <span class="rail"></span>
+    <div class="meat">
+      <button class="titleRow" data-act="open">
+        <span class="wTitle" data-role="title"></span>
+        <span class="prio" data-role="prio"></span>
+      </button>
+      <p class="sub">
+        <span class="subBit" data-role="clientWrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+          <span data-role="client"></span>
+        </span>
+        <span class="sep" data-role="sep">·</span>
+        <span class="subBit" data-role="locWrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <span data-role="location"></span>
+        </span>
+      </p>
+      <div class="chips" data-role="chips"></div>
+      <div class="incomplete" data-role="incomplete" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 3h.01"/><path d="M10.3 4.3 2.6 18A1.7 1.7 0 0 0 4.1 20.5h15.8A1.7 1.7 0 0 0 21.4 18L13.7 4.3a1.7 1.7 0 0 0-3 0z"/></svg>
+        <span><b>Still missing:</b> <span data-role="missing"></span></span>
+      </div>
+      <div class="foot">
+        <span class="age" data-role="age"></span>
+        <button class="planBtn" data-act="plan" data-role="plan">Plan</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-chip">
+  <span class="chip"><span data-role="text"></span></span>
+</template>
+
+<template id="tpl-emptyState">
+  <div class="emptyState">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5.5 5.5h13L21 13v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4z"/></svg>
+    <p data-role="title">Nothing here</p>
+    <small data-role="sub"></small>
+  </div>
+</template>
+
+<!-- the job form, shared by the Add page and the edit sheet -->
+<template id="tpl-jobForm">
+  <div class="jobForm">
+    <div class="field">
+      <p class="lbl">What needs doing <span class="req">*</span></p>
+      <input class="inp big" data-role="title" placeholder="e.g. Boiler making noise, no hot water" autocomplete="off">
+      <p class="errNote" data-role="titleErr" hidden>Give it a title — that is the one thing we need.</p>
+    </div>
+
+    <div class="field">
+      <p class="lbl">Client <span class="opt">optional</span></p>
+      <button class="clientPick" data-act="pickClient" data-role="clientPicked" hidden>
+        <span class="avatar" data-role="clientInitials"></span>
+        <span class="clientText">
+          <b data-role="clientName"></b>
+          <small data-role="clientMeta"></small>
+        </span>
+        <span class="x" data-act="clearClient" role="button" aria-label="Unlink client">&times;</span>
+      </button>
+      <button class="clientEmpty" data-act="pickClient" data-role="clientEmpty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+        Link a client
+      </button>
+    </div>
+
+    <div class="field">
+      <p class="lbl">Location <span class="opt">optional</span></p>
+      <input class="inp" data-role="location" placeholder="Street, number, city" autocomplete="off">
+      <p class="inpNote" data-role="locNote" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        Filled in from the client — change it for a one-off address
+      </p>
+    </div>
+
+    <div class="field">
+      <p class="lbl">Estimated time <span class="opt">optional</span></p>
+      <div class="quick" data-role="estChips">
+        <button class="qchip" data-min="30">30m</button>
+        <button class="qchip" data-min="60">1u</button>
+        <button class="qchip" data-min="120">2u</button>
+        <button class="qchip" data-min="240">4u</button>
+        <button class="qchip" data-min="480">1 day</button>
+        <button class="qchip" data-min="custom">Other…</button>
+      </div>
+      <!-- text + inputmode, not type=number: a number input throws away a
+           comma, and these users write 3,5 rather than 3.5 -->
+      <div class="customRow" data-role="estCustom" hidden>
+        <input class="inp" data-role="estHours" type="text" inputmode="decimal" autocomplete="off" placeholder="Hours, e.g. 3,5">
+        <span class="unit">hours</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <p class="lbl">Deadline <span class="opt">optional</span></p>
+      <div class="quick" data-role="dlChips">
+        <button class="qchip" data-dl="today">Today</button>
+        <button class="qchip" data-dl="tomorrow">Tomorrow</button>
+        <button class="qchip" data-dl="week">This week</button>
+        <button class="qchip" data-dl="pick">Pick a date</button>
+        <button class="qchip on" data-dl="none">None</button>
+      </div>
+      <div class="customRow" data-role="dlCustom" hidden>
+        <input class="inp" data-role="dlDate" type="date">
+      </div>
+    </div>
+
+    <div class="field">
+      <p class="lbl">Priority</p>
+      <div class="seg" data-role="prioSeg">
+        <button data-p="low">Low</button>
+        <button data-p="normal" class="on">Normal</button>
+        <button data-p="high">High</button>
+        <button data-p="urgent">Urgent</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <p class="lbl">Notes <span class="opt">optional</span></p>
+      <textarea class="inp" data-role="notes" rows="3" placeholder="Anything the caller said — gate code, who to ask for, parts needed…"></textarea>
+    </div>
+  </div>
+</template>
+
+<!-- sheets -->
+<template id="tpl-sheetShell">
+  <div class="sheetInner">
+    <div class="grabber"></div>
+    <div class="sheetHead">
+      <h2 data-role="title"></h2>
+      <button class="iconBtn" data-act="closeSheet" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <p class="sheetSub" data-role="sub" hidden></p>
+    <div class="sheetBody" data-role="body"></div>
+  </div>
+</template>
+
+<template id="tpl-planSheet">
+  <div class="planSheet">
+    <p class="planJob" data-role="jobTitle"></p>
+
+    <div class="field">
+      <div class="weekNav">
+        <button class="iconBtn small" data-act="planPrevWeek" aria-label="Previous week">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="weekNavLabel" data-role="planWeekLabel"></span>
+        <button class="iconBtn small" data-act="planNextWeek" aria-label="Next week">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+      <div class="dayChips" data-role="dayChips"></div>
+    </div>
+
+    <div class="twoCol">
+      <div class="field">
+        <p class="lbl">Start</p>
+        <input class="inp" data-role="start" type="time" step="900" value="08:00">
+      </div>
+      <div class="field">
+        <p class="lbl">Takes</p>
+        <div class="customRow">
+          <input class="inp" data-role="hours" type="text" inputmode="decimal" autocomplete="off" value="2">
+          <span class="unit">h</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <p class="lbl">That day so far</p>
+      <div class="dayPreview" data-role="preview"></div>
+    </div>
+
+    <p class="clashNote" data-role="clash" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 3h.01"/><path d="M10.3 4.3 2.6 18A1.7 1.7 0 0 0 4.1 20.5h15.8A1.7 1.7 0 0 0 21.4 18L13.7 4.3a1.7 1.7 0 0 0-3 0z"/></svg>
+      <span data-role="clashText"></span>
+    </p>
+
+    <div class="actions">
+      <button class="btn primary" data-act="confirmPlan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <span data-role="planBtnLabel">Plan it</span>
+      </button>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-previewRow">
+  <div class="previewRow">
+    <span class="previewTime" data-role="time"></span>
+    <span class="previewTitle" data-role="title"></span>
+  </div>
+</template>
+
+<template id="tpl-dayChip">
+  <button class="dayChip">
+    <b data-role="name"></b>
+    <small data-role="date"></small>
+    <i data-role="load"></i>
+  </button>
+</template>
+
+<template id="tpl-jobSheet">
+  <div class="jobSheet">
+    <div class="jobSheetMeta" data-role="meta"></div>
+    <div data-role="form"></div>
+    <div class="actions">
+      <button class="btn primary" data-act="saveJob">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        Save changes
+      </button>
+      <button class="btn outline" data-act="replan" data-role="replanBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+        <span data-role="replanLabel">Plan it</span>
+      </button>
+      <div class="rowBtns">
+        <button class="btn quiet" data-act="toggleDone" data-role="doneBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <span data-role="doneLabel">Mark done</span>
+        </button>
+        <button class="btn quiet" data-act="unplan" data-role="unplanBtn" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16"/><rect x="3.5" y="5" width="17" height="16" rx="3"/></svg>
+          Unplan
+        </button>
+      </div>
+      <button class="btn danger" data-act="deleteJob">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h18M8 5.5V3.5h8v2M6 5.5l1 14a2 2 0 0 0 2 1.9h6a2 2 0 0 0 2-1.9l1-14"/></svg>
+        Delete job
+      </button>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-clientSheet">
+  <div class="clientSheet">
+    <div class="searchWrap bare">
+      <svg class="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input class="searchInp" data-role="search" type="search" placeholder="Search or type a new name…" autocomplete="off">
+    </div>
+    <button class="newClientRow" data-act="newClient" hidden>
+      <span class="avatar plus">+</span>
+      <span class="clientText"><b>Add “<span data-role="newName"></span>”</b><small>as a new client</small></span>
+    </button>
+    <div class="clientList" data-role="list"></div>
+  </div>
+</template>
+
+<template id="tpl-clientRow">
+  <button class="clientRow">
+    <span class="avatar" data-role="initials"></span>
+    <span class="clientText">
+      <b data-role="name"></b>
+      <small data-role="meta"></small>
+    </span>
+  </button>
+</template>
+
+<template id="tpl-menuSheet">
+  <div class="menuSheet" data-role="list"></div>
+</template>
+
+<template id="tpl-menuRow">
+  <button class="menuRow">
+    <span class="menuText"><b data-role="label"></b><small data-role="sub"></small></span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+</template>
+
+<template id="tpl-confirmSheet">
+  <div class="confirmSheet">
+    <p data-role="text"></p>
+    <div class="actions">
+      <button class="btn danger" data-act="confirmYes" data-role="yes">Yes, do it</button>
+      <button class="btn quiet" data-act="closeSheet">Cancel</button>
+    </div>
+  </div>
+</template>
+
+<script src="src/util.js"></script>
+<script src="src/store.js"></script>
+<script src="src/sheets.js"></script>
+<script src="src/jobform.js"></script>
+<script src="src/pages/week.js"></script>
+<script src="src/pages/available.js"></script>
+<script src="src/pages/add.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>

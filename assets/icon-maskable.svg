@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- maskable: the art is kept inside the middle 80% so a circular or
+       squircle mask on any launcher never clips the calendar -->
+  <rect width="512" height="512" fill="#E5063C"/>
+  <g fill="none" stroke="#ffffff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="152" y="172" width="208" height="184" rx="34"/>
+    <path d="M204 150v46M308 150v46M152 230h208"/>
+    <path d="M196 283h44M196 322h120"/>
+  </g>
+</svg>
