@@ -175,14 +175,26 @@
         return true;
     };
 
-    /** date: 'YYYY-MM-DD', start: 'HH:MM', durationMin: number */
+    /**
+     * Put a job on a day. Only the date is needed — `start` and `durationMin`
+     * are both allowed to be null, because a title is the only thing this app
+     * ever insists on. A job with no time sits at the end of its day as
+     * "any time"; a job with no duration simply adds nothing to the hours.
+     */
     Store.planJob = function (id, date, start, durationMin) {
         const job = Store.job(id);
         if (!job) return null;
-        job.planned = { date: date, start: start, durationMin: Math.max(15, Math.round(durationMin)) };
-        // Planning a job is also the moment someone finally knows how long it
-        // takes, so an empty estimate gets filled in from what they just booked.
-        if (job.estimateMin == null) job.estimateMin = job.planned.durationMin;
+
+        job.planned = {
+            date: date,
+            start: start || null,
+            durationMin: durationMin == null ? null : Math.max(15, Math.round(durationMin))
+        };
+        // Booking a slot is often the moment someone finally knows how long it
+        // takes, so an empty estimate picks that up — but only if one was given.
+        if (job.estimateMin == null && job.planned.durationMin != null) {
+            job.estimateMin = job.planned.durationMin;
+        }
         save();
         return job;
     };
@@ -211,25 +223,33 @@
         return data.jobs.filter(j => !j.planned);
     };
 
-    /** Jobs planned on a given day, in start order. */
+    /** Jobs planned on a given day: timed ones in clock order, then the rest. */
     Store.plannedOn = function (iso) {
         return data.jobs
             .filter(j => j.planned && j.planned.date === iso)
-            .sort((a, b) => U.toMinutes(a.planned.start) - U.toMinutes(b.planned.start));
+            .sort((a, b) => {
+                const at = a.planned.start, bt = b.planned.start;
+                if (at && bt) return U.toMinutes(at) - U.toMinutes(bt);
+                if (at) return -1;   // a time beats no time
+                if (bt) return 1;
+                return a.createdAt.localeCompare(b.createdAt);
+            });
     };
 
-    /** What a hurried entry still lacks — drives the "Incomplete" badge. */
-    Store.missingFields = function (job) {
-        const missing = [];
-        if (job.estimateMin == null) missing.push('estimate');
-        if (!job.location && !job.clientId) missing.push('location');
-        if (!job.deadline) missing.push('deadline');
-        return missing;
-    };
-
-    /** A job counts as incomplete when it has no estimate and no deadline. */
-    Store.isIncomplete = function (job) {
-        return job.estimateMin == null || !job.deadline;
+    /**
+     * What one day holds: how many jobs, how many minutes of them are known,
+     * and whether any had no duration — so a header can say "3 jobs · 6u+"
+     * instead of quietly under-reporting.
+     */
+    Store.dayLoad = function (iso) {
+        const jobs = Store.plannedOn(iso);
+        let mins = 0;
+        let unknown = 0;
+        jobs.forEach(job => {
+            if (job.planned.durationMin == null) unknown++;
+            else mins += job.planned.durationMin;
+        });
+        return { count: jobs.length, mins: mins, unknown: unknown };
     };
 
     /** The address to show: the job's own, else the linked client's. */
@@ -251,10 +271,15 @@
         let ahead = 0;
         let count = 0;
 
+        let unknown = 0;
+
         days.forEach(iso => {
             Store.plannedOn(iso).forEach(job => {
-                const mins = job.planned.durationMin;
                 count++;
+                const mins = job.planned.durationMin;
+                // A job nobody has timed yet still counts as a job, it just
+                // cannot add hours to the bar.
+                if (mins == null) { unknown++; return; }
                 if (job.doneAt || iso < today) done += mins;
                 else ahead += mins;
             });
@@ -267,6 +292,7 @@
             ahead: ahead,
             total: total,
             count: count,
+            unknown: unknown,
             target: target,
             free: Math.max(0, target - total),
             over: Math.max(0, total - target)

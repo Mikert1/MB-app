@@ -28,10 +28,7 @@
             return;
         }
 
-        const missing = Store.missingFields(job);
-        W.app.toast(missing.length
-            ? 'Saved — still missing ' + missing.join(', ')
-            : 'Saved to available work');
+        W.app.toast('Saved to available work');
         W.app.go('avail');
     }
 

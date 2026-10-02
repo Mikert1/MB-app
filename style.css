@@ -338,7 +338,7 @@ button {
     background-color: var(--bg-card);
 }
 .job:active { transform: scale(.99); }
-.job .time { flex: 0 0 50px; font-size: .78rem; line-height: 1.4; }
+.job .time { flex: 0 0 54px; font-size: .78rem; line-height: 1.4; }
 .job .time b { display: block; font-weight: 800; color: var(--text-bright); }
 .job .time small { display: block; font-weight: 600; color: var(--text-faint); font-size: .72rem; }
 .job .rail { flex: 0 0 3px; border-radius: 3px; background-color: var(--bg-chip); }

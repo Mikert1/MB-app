@@ -93,8 +93,13 @@
         let monday = U.mondayOf(job.planned ? U.parseDate(job.planned.date) : new Date());
         let picked = job.planned ? job.planned.date : U.today();
 
+        /* Nothing here is invented. An empty start means "any time that day",
+           an empty duration means "no idea yet" — both are allowed to stay
+           empty, so a job that is only a title can still be planned. */
+        r.start.value = '';
+        r.hours.value = '';
         if (job.planned) {
-            r.start.value = job.planned.start;
+            r.start.value = job.planned.start || '';
             r.hours.value = U.minutesToHours(job.planned.durationMin);
         } else if (job.estimateMin) {
             r.hours.value = U.minutesToHours(job.estimateMin);
@@ -145,8 +150,7 @@
                 list.forEach(other => {
                     const row = U.clone('tpl-previewRow');
                     const pr = U.roles(row);
-                    const from = U.toMinutes(other.planned.start);
-                    U.setText(pr.time, other.planned.start + '–' + U.toClock(from + other.planned.durationMin));
+                    U.setText(pr.time, U.slotLabel(other.planned));
                     U.setText(pr.title, other.title);
                     r.preview.appendChild(row);
                 });
@@ -157,15 +161,19 @@
         /* A clash is a warning, never a block — a real day has two people on
            it sometimes, and the app should not argue with the dispatcher. */
         function checkClash() {
-            const from = U.toMinutes(r.start.value);
             const mins = U.hoursToMinutes(r.hours.value);
-            if (mins == null) {
+            // Two jobs can only overlap if both have a time and a length. With
+            // either missing there is nothing to compare, so we stay quiet
+            // rather than inventing a warning.
+            if (!r.start.value || mins == null) {
                 U.toggle(r.clash, false);
                 return;
             }
+            const from = U.toMinutes(r.start.value);
             const to = from + mins;
 
             const hit = others().find(other => {
+                if (!other.planned.start || other.planned.durationMin == null) return false;
                 const oFrom = U.toMinutes(other.planned.start);
                 const oTo = oFrom + other.planned.durationMin;
                 return from < oTo && to > oFrom;
@@ -196,13 +204,9 @@
             if (act.dataset.act === 'planNextWeek') { monday = U.addDays(monday, 7); renderDays(); }
 
             if (act.dataset.act === 'confirmPlan') {
-                const mins = U.hoursToMinutes(r.hours.value);
-                if (mins == null) {
-                    r.hours.classList.add('bad');
-                    W.app.toast('How long does it take?');
-                    return;
-                }
-                Store.planJob(job.id, picked, r.start.value || '08:00', mins);
+                // A day is the whole requirement. Time and length ride along
+                // only if the user felt like filling them in.
+                Store.planJob(job.id, picked, r.start.value, U.hoursToMinutes(r.hours.value));
                 Sheets.close();
                 W.app.toast('Planned on ' + U.dayName(picked) + ' ' + U.shortDate(picked));
                 if (onPlanned) onPlanned();
@@ -241,9 +245,8 @@
             if (fresh.createdBy && fresh.createdBy !== Store.settings().me) add('by ' + fresh.createdBy);
 
             if (fresh.planned) {
-                const from = U.toMinutes(fresh.planned.start);
-                add(U.dayShort(fresh.planned.date) + ' ' + U.shortDate(fresh.planned.date) + ', ' +
-                    fresh.planned.start + '–' + U.toClock(from + fresh.planned.durationMin), 'accent');
+                add(U.dayShort(fresh.planned.date) + ' ' + U.shortDate(fresh.planned.date) +
+                    ', ' + U.slotLabel(fresh.planned), 'accent');
             } else {
                 add('Not planned yet', 'ghost');
             }

@@ -78,7 +78,6 @@
           <button class="fchip on" data-filter="all">All<span class="cnt"></span></button>
           <button class="fchip" data-filter="urgent">Urgent<span class="cnt"></span></button>
           <button class="fchip" data-filter="week">Deadline this week<span class="cnt"></span></button>
-          <button class="fchip" data-filter="incomplete">Incomplete<span class="cnt"></span></button>
         </div>
       </header>
 
@@ -110,7 +109,7 @@
       <div class="body">
         <div class="hint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-5M12 8h.01"/></svg>
-          <span>On the phone with someone? <b>Only the title is required.</b> Save it now — the job lands in Available work marked incomplete, and anyone can fill the rest in later.</span>
+          <span>On the phone with someone? <b>The title is all you need.</b> Save it now and plan it straight away — anything else can be filled in later, or never.</span>
         </div>
 
         <div data-role="addForm"></div>
@@ -276,10 +275,6 @@
         </span>
       </p>
       <div class="chips" data-role="chips"></div>
-      <div class="incomplete" data-role="incomplete" hidden>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 3h.01"/><path d="M10.3 4.3 2.6 18A1.7 1.7 0 0 0 4.1 20.5h15.8A1.7 1.7 0 0 0 21.4 18L13.7 4.3a1.7 1.7 0 0 0-3 0z"/></svg>
-        <span><b>Still missing:</b> <span data-role="missing"></span></span>
-      </div>
       <div class="foot">
         <span class="age" data-role="age"></span>
         <button class="planBtn" data-act="plan" data-role="plan">Plan</button>
@@ -417,13 +412,13 @@
 
     <div class="twoCol">
       <div class="field">
-        <p class="lbl">Start</p>
-        <input class="inp" data-role="start" type="time" step="900" value="08:00">
+        <p class="lbl">Start <span class="opt">optional</span></p>
+        <input class="inp" data-role="start" type="time" step="900">
       </div>
       <div class="field">
-        <p class="lbl">Takes</p>
+        <p class="lbl">Takes <span class="opt">optional</span></p>
         <div class="customRow">
-          <input class="inp" data-role="hours" type="text" inputmode="decimal" autocomplete="off" value="2">
+          <input class="inp" data-role="hours" type="text" inputmode="decimal" autocomplete="off" placeholder="—">
           <span class="unit">h</span>
         </div>
       </div>

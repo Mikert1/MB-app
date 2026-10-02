@@ -18,7 +18,6 @@
 
     function matchesFilter(job, which) {
         if (which === 'urgent') return job.priority === 'urgent';
-        if (which === 'incomplete') return Store.isIncomplete(job);
         if (which === 'week') {
             if (!job.deadline) return false;
             const days = U.daysBetween(U.today(), job.deadline);
@@ -93,23 +92,9 @@
             addChip(cr.chips, 'No deadline', 'ghost');
         }
 
-        const missing = Store.missingFields(job);
-        if (missing.length) {
-            U.setText(cr.missing, missing.join(', '));
-            U.toggle(cr.incomplete, true);
-        }
-
         const age = U.age(job.createdAt);
         const by = job.createdBy && job.createdBy !== Store.settings().me ? ' by ' + job.createdBy : '';
         U.setText(cr.age, age + by);
-
-        // A job that is still missing its basics gets a different first move:
-        // finish it, rather than squeeze a guess into the week.
-        if (missing.length >= 2) {
-            U.setText(cr.plan, 'Complete');
-            cr.plan.classList.add('quiet');
-            cr.plan.dataset.act = 'open';
-        }
 
         el.addEventListener('click', e => {
             const act = e.target.closest('[data-act]');

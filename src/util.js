@@ -175,6 +175,19 @@
         return String(Math.round((min / 60) * 100) / 100).replace('.', ',');
     };
 
+    /**
+     * A planned slot as one short label. Everything in it is optional, so this
+     * degrades instead of printing "NaN:NaN":
+     *   start + duration -> '08:30–12:00'
+     *   start only       -> '08:30'
+     *   neither          -> 'Any time'
+     */
+    U.slotLabel = function (planned) {
+        if (!planned || !planned.start) return 'Any time';
+        if (planned.durationMin == null) return planned.start;
+        return planned.start + '–' + U.toClock(U.toMinutes(planned.start) + planned.durationMin);
+    };
+
     /** How long ago a job was created, in the words a dispatcher would use. */
     U.age = function (isoStamp) {
         const then = new Date(isoStamp);

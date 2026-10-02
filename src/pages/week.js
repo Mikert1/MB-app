@@ -27,9 +27,18 @@
         const cls = priorityClass(job);
         if (cls) card.classList.add(cls);
 
-        const from = U.toMinutes(job.planned.start);
-        U.setText(cr.start, job.planned.start);
-        U.setText(cr.end, U.toClock(from + job.planned.durationMin));
+        /* All three shapes of a slot. A job with no time reads "Any time", a
+           job with a time but no length just shows when it starts. */
+        if (job.planned.start) {
+            U.setText(cr.start, job.planned.start);
+            U.setText(cr.end, job.planned.durationMin == null
+                ? '' : U.toClock(U.toMinutes(job.planned.start) + job.planned.durationMin));
+        } else {
+            // One phrase in the bright line, nothing in the dim one — split
+            // across the two it would read as a glitch rather than a label.
+            U.setText(cr.start, 'Any time');
+            U.setText(cr.end, '');
+        }
         U.setText(cr.title, job.title);
 
         const client = Store.clientNameOf(job);
@@ -47,7 +56,8 @@
         } else if (job.priority === 'high') {
             addChip(cr.chips, 'High', 'warn');
         }
-        addChip(cr.chips, U.duration(job.planned.durationMin));
+        // No duration, no chip — a job nobody has timed is not a problem.
+        if (job.planned.durationMin != null) addChip(cr.chips, U.duration(job.planned.durationMin));
 
         // On the week view a deadline is only worth repeating when it is tight —
         // the job already has a slot, so a date three weeks out is just noise.
@@ -72,8 +82,7 @@
         U.setText(br.name, U.dayName(iso) + (iso === today ? ' · today' : ''));
 
         const jobs = Store.plannedOn(iso);
-        const mins = jobs.reduce((sum, j) => sum + j.planned.durationMin, 0);
-        U.setText(br.load, jobs.length ? U.plural(jobs.length, 'job', 'jobs') + ' · ' + U.duration(mins) : 'free');
+        U.setText(br.load, jobs.length ? dayLoadLabel(iso) : 'free');
 
         if (!jobs.length) {
             br.jobs.appendChild(U.clone('tpl-emptyDay'));
@@ -83,14 +92,27 @@
         return block;
     }
 
+    /**
+     * "3 jobs · 6u" — and "6u+" when one of them has no duration yet, so the
+     * number never quietly under-reports the day.
+     */
+    function dayLoadLabel(iso) {
+        const load = Store.dayLoad(iso);
+        const jobs = U.plural(load.count, 'job', 'jobs');
+        if (!load.mins) return load.unknown ? jobs : jobs + ' · 0u';
+        return jobs + ' · ' + U.duration(load.mins) + (load.unknown ? '+' : '');
+    }
+
     function capacityCard(days) {
         const card = U.clone('tpl-capacity');
         const cr = U.roles(card);
         const load = Store.weekLoad(days);
 
-        U.setText(cr.planned, U.duration(load.total) || '0u');
+        U.setText(cr.planned, (U.duration(load.total) || '0u') + (load.unknown ? '+' : ''));
         U.setText(cr.target, U.duration(load.target));
-        U.setText(cr.jobCount, U.plural(load.count, 'job', 'jobs'));
+        // A "+" rather than a silently low number when some jobs have no
+        // duration: the hours shown are the ones we actually know.
+        U.setText(cr.jobCount, U.plural(load.count, 'job', 'jobs') + (load.unknown ? ' · ' + load.unknown + ' untimed' : ''));
         U.setText(cr.freeLabel, load.over ? U.duration(load.over) + ' over' : U.duration(load.free) + ' free');
         U.setText(cr.capUnder, load.over ? 'planned — over your week' : 'planned this week');
 
