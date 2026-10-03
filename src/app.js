@@ -1,4 +1,4 @@
-/** Boot, routing between the three pages, toast, and the demo menu. */
+/** Boot, routing between the pages, toast, and the options menu. */
 (function (W) {
     'use strict';
 
@@ -54,7 +54,7 @@
         U.toggle(badge, urgent > 0);
     };
 
-    /* ---------------- demo menu (the ⋯ on My week) ---------------- */
+    /* ---------------- options (the ⋯ on My week) ---------------- */
 
     /**
      * The one option a tester can reach. "Reset the demo data" and "Start
@@ -95,7 +95,14 @@
             setTimeout(() => App.toast('This browser will not let the app save — nothing will be remembered'), 900);
         }
 
+        /* A new app stays empty until its owner puts work in it. ?demo fills
+           it with the example company instead, for showing the thing to
+           someone — and only while it is empty, so landing on that URL a
+           second time can never wipe what a tester has entered. */
         Store.load();
+        if (/[?&]demo\b/.test(location.search) && !Store.jobs().length) {
+            Store.seed();
+        }
 
         U.$$('.page').forEach(page => {
             const name = page.dataset.page;

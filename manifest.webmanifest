@@ -1,7 +1,7 @@
 {
-  "name": "Workium",
-  "short_name": "Workium",
-  "description": "Incoming work in, a planned week out.",
+  "name": "MB app (demo)",
+  "short_name": "MB app",
+  "description": "MB app demo — incoming work in, a planned week out.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

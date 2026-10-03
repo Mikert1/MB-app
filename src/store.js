@@ -10,6 +10,9 @@
     'use strict';
 
     const U = W.util;
+    /* The storage keys keep their original name on purpose. Renaming them to
+       match the app would orphan the data of anyone already testing, and there
+       is deliberately no reset button to recover from that. */
     const KEY = 'workium.store.v1';
 
     /* The shape we persist. `version` lets a later build migrate instead
@@ -35,7 +38,7 @@
             window.localStorage.setItem(KEY, text);
             return true;
         } catch (e) {
-            console.warn('Workium: could not save to localStorage', e);
+            console.warn('MB app: could not save to localStorage', e);
             return false;
         }
     }
@@ -70,19 +73,25 @@
         }
     };
 
+    /**
+     * A first run starts genuinely empty. It used to drop 28 example jobs in,
+     * which was wrong: there is no reset button, so a real tester would have
+     * been stuck deleting fake work by hand before they could use the app.
+     * Example data is opt-in now — see Store.seed and the ?demo switch in app.js.
+     */
     Store.load = function () {
         const raw = readRaw();
         if (!raw) {
             data = migrate(null);
-            Store.seed();
+            save();
             return { fresh: true };
         }
         try {
             data = migrate(JSON.parse(raw));
         } catch (e) {
-            console.warn('Workium: stored data was unreadable, starting fresh', e);
+            console.warn('MB app: stored data was unreadable, starting empty', e);
             data = migrate(null);
-            Store.seed();
+            save();
             return { fresh: true };
         }
         return { fresh: false };
@@ -362,8 +371,9 @@
     /* ---------------- demo data ---------------- */
 
     /**
-     * First-run content, dated relative to today so the week always looks
-     * lived-in whenever someone opens the app for the first time.
+     * The example company, dated relative to today so it always looks
+     * lived-in. Never runs on its own: load it with ?demo on the URL, or by
+     * calling store.seed() from the console. It replaces whatever is there.
      */
     Store.seed = function () {
         data.jobs = [];

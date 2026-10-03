@@ -204,11 +204,17 @@
             const ahead = days.filter(d => d >= today);
             const load = Store.weekLoad(days);
 
-            if (past.length && load.done) {
-                body.appendChild(sectionLabel('Earlier this week', U.duration(load.done) + ' done'));
+            /* Days already gone are folded away once there is work to look at
+               instead — but on an empty week they stay, so the page reads as a
+               week you can fill rather than the two days that happen to be
+               left. */
+            if (past.length && (load.done || !load.count)) {
+                body.appendChild(sectionLabel('Earlier this week',
+                    load.done ? U.duration(load.done) + ' done' : ''));
                 past.forEach(iso => body.appendChild(dayBlock(iso)));
             }
-            body.appendChild(sectionLabel('Ahead', U.duration(load.ahead) + ' planned'));
+            body.appendChild(sectionLabel('Ahead',
+                load.ahead ? U.duration(load.ahead) + ' planned' : ''));
             ahead.forEach(iso => body.appendChild(dayBlock(iso)));
         } else {
             days.forEach(iso => body.appendChild(dayBlock(iso)));
