@@ -118,6 +118,14 @@
         return d.getDate() + ' ' + MONTH_SHORT[d.getMonth()];
     };
 
+    /** 'September 2026' — the archive groups finished work by month. */
+    U.monthLabel = function (iso) {
+        const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+            'August', 'September', 'October', 'November', 'December'];
+        const d = U.parseDate(iso);
+        return MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+    };
+
     /** 'Week 40 · 28 Sep – 4 Oct' */
     U.weekLabel = function (monday) {
         const sunday = U.addDays(monday, 6);

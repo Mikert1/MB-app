@@ -127,6 +127,29 @@
       </div>
     </section>
 
+
+    <!-- ============ PAGE 4 — CLIENTS ============ -->
+    <section class="page" data-page="clients">
+      <header class="hdr">
+        <div class="hdrTop">
+          <div class="hdrText">
+            <h1 class="hdrTitle">Clients</h1>
+            <p class="hdrSub" data-role="clientsSub">—</p>
+          </div>
+          <button class="iconBtn" data-act="toggleClientSearch" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          </button>
+        </div>
+
+        <div class="searchWrap" data-role="clientSearchWrap" hidden>
+          <svg class="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input class="searchInp" data-role="clientSearch" type="search" placeholder="Client name or place…" autocomplete="off">
+          <button class="searchClear" data-act="clearClientSearch" aria-label="Clear search">&times;</button>
+        </div>
+      </header>
+
+      <div class="body" data-role="clientsBody"></div>
+    </section>
   </main>
 
   <!-- ============ BOTTOM NAV ============ -->
@@ -148,8 +171,7 @@
         </button>
         <p class="plusLbl">Add work</p>
       </div>
-      <button class="navItem soon" data-soon="Clients">
-        <span class="soonTag">SOON</span>
+      <button class="navItem" data-goto="clients">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5"/><path d="M17 9.5a2.8 2.8 0 1 0 0-5.5"/><path d="M18 14.8c2 .6 3.5 2 3.5 4"/></svg>
         <p>Clients</p>
       </button>
@@ -299,6 +321,102 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
     </span>
   </button>
+</template>
+
+<!-- The archive entry at the top of the Clients page: everything finished,
+     across every client. -->
+<template id="tpl-prevWork">
+  <button class="prevWork" data-act="openArchive">
+    <span class="prevIcon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5h18M5.5 7.5v11a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-11"/><path d="M9 7.5V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2.5"/><path d="M9.5 13.5l1.8 1.8 3.4-3.4"/></svg>
+    </span>
+    <span class="prevText">
+      <b>Previous work</b>
+      <small data-role="prevSub">—</small>
+    </span>
+    <svg class="prevChev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+</template>
+
+<template id="tpl-clientCard">
+  <button class="clientCard">
+    <span class="avatar" data-role="initials"></span>
+    <span class="clientCardText">
+      <b data-role="name"></b>
+      <small data-role="where" hidden></small>
+      <span class="clientCardStats" data-role="stats"></span>
+    </span>
+    <span class="clientCardOpen" data-role="openCount" hidden></span>
+    <svg class="prevChev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+</template>
+
+<template id="tpl-addClient">
+  <button class="clientEmpty" data-act="newClientOnPage">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Add a client
+  </button>
+</template>
+
+<!-- One job as a compact line, used inside a client's sheet and the archive. -->
+<template id="tpl-jobLine">
+  <button class="jobLine">
+    <span class="jobLineMain">
+      <span class="jobLineTitle" data-role="title"></span>
+      <span class="jobLineSub" data-role="sub"></span>
+    </span>
+    <span class="jobLineAside" data-role="aside"></span>
+  </button>
+</template>
+
+<template id="tpl-clientDetail">
+  <div class="clientDetail">
+    <div class="clientStatRow">
+      <span class="clientStat"><b data-role="statDone">0</b><small>done</small></span>
+      <span class="clientStat"><b data-role="statHours">0u</b><small>worked</small></span>
+      <span class="clientStat"><b data-role="statOpen">0</b><small>open</small></span>
+    </div>
+    <p class="clientAddress" data-role="address" hidden></p>
+
+    <button class="btn primary" data-act="addForClient">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      New job for this client
+    </button>
+
+    <div data-role="lists"></div>
+
+    <button class="detailsToggle" data-act="toggleClientEdit">
+      <span data-role="editLabel">Change name or address</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div data-role="editWrap" hidden>
+      <div class="field">
+        <p class="lbl">Name <span class="req">*</span></p>
+        <input class="inp" data-role="editName" autocomplete="off">
+        <p class="errNote" data-role="nameErr" hidden>A client needs a name.</p>
+      </div>
+      <div class="field">
+        <p class="lbl">Address <span class="opt">optional</span></p>
+        <input class="inp" data-role="editWhere" placeholder="Street, number, city" autocomplete="off">
+      </div>
+      <div class="actions">
+        <button class="btn primary" data-act="saveClient">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Save client
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-archiveSheet">
+  <div class="archiveSheet">
+    <div class="searchWrap bare">
+      <svg class="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input class="searchInp" data-role="search" type="search" placeholder="Search finished work…" autocomplete="off">
+    </div>
+    <div data-role="list"></div>
+  </div>
 </template>
 
 <template id="tpl-chip">
@@ -551,6 +669,26 @@
   </button>
 </template>
 
+<template id="tpl-weekTargetSheet">
+  <div class="targetSheet">
+    <div class="field">
+      <p class="lbl">Hours in a working week</p>
+      <div class="customRow">
+        <input class="inp big" data-role="hours" type="text" inputmode="decimal" autocomplete="off" placeholder="40">
+        <span class="unit">hours</span>
+      </div>
+      <p class="inpNote plain" data-role="note">The bar at the top of My week fills up against this.</p>
+      <p class="errNote" data-role="err" hidden>Give a number of hours between 1 and 168.</p>
+    </div>
+    <div class="actions">
+      <button class="btn primary" data-act="saveTarget">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        Save
+      </button>
+    </div>
+  </div>
+</template>
+
 <template id="tpl-confirmSheet">
   <div class="confirmSheet">
     <p data-role="text"></p>
@@ -568,6 +706,7 @@
 <script src="src/pages/week.js"></script>
 <script src="src/pages/available.js"></script>
 <script src="src/pages/add.js"></script>
+<script src="src/pages/clients.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

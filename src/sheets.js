@@ -401,6 +401,213 @@
     };
 
     /* ============================================================
+       One client: their numbers, their work, their details.
+       ============================================================ */
+
+    /** A job as a compact tappable line. */
+    function jobLine(job, onChanged) {
+        const line = U.clone('tpl-jobLine');
+        const lr = U.roles(line);
+        U.setText(lr.title, job.title);
+
+        const bits = [];
+        if (job.doneAt && job.planned) {
+            bits.push(U.shortDate(job.planned.date));
+        } else if (job.planned) {
+            bits.push(U.dayShort(job.planned.date) + ' ' + U.shortDate(job.planned.date) +
+                (job.planned.start ? ' \u00b7 ' + job.planned.start : ''));
+        } else {
+            bits.push(U.age(job.createdAt).replace('Added ', ''));
+        }
+
+        const dl = !job.planned && U.deadline(job.deadline);
+        if (dl) bits.push(dl.text.toLowerCase());
+        U.setText(lr.sub, bits.join(' \u00b7 '));
+
+        const mins = job.planned && job.planned.durationMin != null
+            ? job.planned.durationMin
+            : job.estimateMin;
+        U.setText(lr.aside, mins == null ? '' : U.duration(mins));
+
+        line.addEventListener('click', () => Sheets.job(job.id, onChanged));
+        return line;
+    }
+
+    function listBlock(label, jobs, onChanged) {
+        const wrap = document.createElement('div');
+        if (!jobs.length) return wrap;
+
+        const head = U.clone('tpl-sectionLabel');
+        const hr = U.roles(head);
+        U.setText(hr.label, label);
+        U.setText(hr.aside, U.plural(jobs.length, 'job', 'jobs'));
+        wrap.appendChild(head);
+
+        jobs.forEach(job => wrap.appendChild(jobLine(job, onChanged)));
+        return wrap;
+    }
+
+    Sheets.client = function (clientId, onChanged) {
+        const client = Store.client(clientId);
+        if (!client) return;
+
+        const body = U.clone('tpl-clientDetail');
+        const r = U.roles(body);
+
+        function render() {
+            const fresh = Store.client(clientId);
+            if (!fresh) return;
+            const work = Store.jobsForClient(clientId);
+
+            U.setText(r.statDone, work.done.length);
+            U.setText(r.statHours, U.duration(work.minutes) || '0u');
+            U.setText(r.statOpen, work.waiting.length + work.planned.length);
+
+            U.setText(r.address, fresh.location || '');
+            U.toggle(r.address, !!fresh.location);
+
+            const again = () => { render(); if (onChanged) onChanged(); };
+            U.empty(r.lists);
+            r.lists.appendChild(listBlock('Waiting to be planned', work.waiting, again));
+            r.lists.appendChild(listBlock('In the week', work.planned, again));
+            r.lists.appendChild(listBlock('Previous work', work.done, again));
+
+            if (!work.total) {
+                const empty = U.clone('tpl-emptyState');
+                const er = U.roles(empty);
+                U.setText(er.title, 'Nothing for them yet');
+                U.setText(er.sub, 'Any job you link to this client shows up here.');
+                r.lists.appendChild(empty);
+            }
+
+            r.editName.value = fresh.name;
+            r.editWhere.value = fresh.location || '';
+        }
+
+        r.editName.addEventListener('input', () => {
+            r.editName.classList.remove('bad');
+            U.toggle(r.nameErr, false);
+        });
+
+        body.addEventListener('click', e => {
+            const act = e.target.closest('[data-act]');
+            if (!act) return;
+
+            if (act.dataset.act === 'toggleClientEdit') {
+                const opening = r.editWrap.hidden;
+                U.toggle(r.editWrap, opening);
+                U.$('.detailsToggle', body).classList.toggle('open', opening);
+                U.setText(r.editLabel, opening ? 'Leave the details alone' : 'Change name or address');
+            }
+
+            if (act.dataset.act === 'saveClient') {
+                if (!r.editName.value.trim()) {
+                    r.editName.classList.add('bad');
+                    U.toggle(r.nameErr, true);
+                    r.editName.focus();
+                    return;
+                }
+                Store.updateClient(clientId, { name: r.editName.value, location: r.editWhere.value });
+                Sheets.close();
+                W.app.toast('Client saved');
+                if (onChanged) onChanged();
+            }
+
+            if (act.dataset.act === 'addForClient') {
+                Sheets.closeAll();
+                W.pages.add.startWithClient(clientId);
+                W.app.go('add');
+            }
+        });
+
+        render();
+        open(client.name, body, { sub: client.location || null });
+    };
+
+    /* ============================================================
+       Previous work — everything finished, newest first.
+       ============================================================ */
+    Sheets.archive = function (onChanged) {
+        const body = U.clone('tpl-archiveSheet');
+        const r = U.roles(body);
+
+        /** When a finished job happened: its slot if it had one, else when it was ticked off. */
+        function whenOf(job) {
+            return job.planned ? job.planned.date : U.iso(new Date(job.doneAt));
+        }
+
+        function minutesOf(job) {
+            if (job.planned && job.planned.durationMin != null) return job.planned.durationMin;
+            return job.estimateMin || 0;
+        }
+
+        function render() {
+            const typed = r.search.value.trim();
+            const q = typed.toLowerCase();
+            const all = Store.doneJobs();
+            const hits = q
+                ? all.filter(job => (job.title + ' ' + Store.clientNameOf(job) + ' ' +
+                    Store.locationOf(job)).toLowerCase().indexOf(q) >= 0)
+                : all;
+
+            U.empty(r.list);
+
+            if (!hits.length) {
+                const empty = U.clone('tpl-emptyState');
+                const er = U.roles(empty);
+                U.setText(er.title, q ? 'Nothing matches that' : 'Nothing finished yet');
+                U.setText(er.sub, q
+                    ? 'Try a client name or part of the title.'
+                    : 'Jobs land here once you mark them done in My week.');
+                r.list.appendChild(empty);
+                return;
+            }
+
+            /* Grouped by month, because "what did we do in September" is the
+               question this list exists to answer. */
+            const months = [];
+            const byMonth = {};
+            hits.forEach(job => {
+                const key = whenOf(job).slice(0, 7);
+                if (!byMonth[key]) { byMonth[key] = []; months.push(key); }
+                byMonth[key].push(job);
+            });
+
+            months.forEach(key => {
+                const jobs = byMonth[key];
+                const mins = jobs.reduce((sum, j) => sum + minutesOf(j), 0);
+
+                const head = U.clone('tpl-sectionLabel');
+                const hr = U.roles(head);
+                U.setText(hr.label, U.monthLabel(whenOf(jobs[0])));
+                U.setText(hr.aside, U.plural(jobs.length, 'job', 'jobs') +
+                    (mins ? ' \u00b7 ' + U.duration(mins) : ''));
+                r.list.appendChild(head);
+
+                jobs.forEach(job => {
+                    const line = jobLine(job, () => { render(); if (onChanged) onChanged(); });
+                    // in the archive the client matters more than the day of the week
+                    const clientName = Store.clientNameOf(job);
+                    if (clientName) {
+                        U.setText(U.roles(line).sub, U.shortDate(whenOf(job)) + ' \u00b7 ' + clientName);
+                    }
+                    r.list.appendChild(line);
+                });
+            });
+        }
+
+        r.search.addEventListener('input', render);
+        render();
+
+        const count = Store.doneJobs().length;
+        open('Previous work', body, {
+            sub: count
+                ? U.plural(count, 'job', 'jobs') + ' finished \u00b7 ' + U.duration(Store.doneMinutes()) + ' worked'
+                : null
+        });
+    };
+
+    /* ============================================================
        Client picker — search the list, or add one by name
        ============================================================ */
     Sheets.clients = function (onPick) {
@@ -467,6 +674,53 @@
        ============================================================ */
 
     /** rows: [{ label, sub, onPick }] */
+    /** Drop every open sheet at once — for when a sub-sheet finishes a job. */
+    Sheets.closeAll = function () {
+        while (Sheets.isOpen()) Sheets.close();
+    };
+
+    /* ============================================================
+       Week target — a number you type, not one that changes itself
+       when you tap it.
+       ============================================================ */
+    Sheets.weekTarget = function (onSaved) {
+        const body = U.clone('tpl-weekTargetSheet');
+        const r = U.roles(body);
+        r.hours.value = U.minutesToHours(Store.settings().weekHours * 60);
+
+        function commit() {
+            // U.hoursToMinutes takes a comma or a dot and rejects junk
+            const mins = U.hoursToMinutes(r.hours.value);
+            const hours = mins == null ? null : mins / 60;
+
+            if (hours == null || hours > 168) {
+                r.hours.classList.add('bad');
+                U.toggle(r.err, true);
+                r.hours.focus();
+                return;
+            }
+            Store.setWeekHours(hours);
+            Sheets.closeAll();
+            W.app.toast('A week is now ' + U.minutesToHours(Store.settings().weekHours * 60) + ' hours');
+            if (onSaved) onSaved();
+        }
+
+        r.hours.addEventListener('input', () => {
+            r.hours.classList.remove('bad');
+            U.toggle(r.err, false);
+        });
+        // Enter is how anyone fills in a single-field form
+        r.hours.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        });
+        body.addEventListener('click', e => {
+            if (e.target.closest('[data-act="saveTarget"]')) commit();
+        });
+
+        open('Hours in your week', body);
+        setTimeout(() => { r.hours.focus(); r.hours.select(); }, 320);
+    };
+
     Sheets.menu = function (title, rows) {
         const body = U.clone('tpl-menuSheet');
         const r = U.roles(body);

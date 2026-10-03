@@ -6,7 +6,7 @@
     const Store = W.store;
     const App = W.app = {};
 
-    const PAGES = ['week', 'avail', 'add'];
+    const PAGES = ['week', 'avail', 'add', 'clients'];
     let current = null;
     let toastTimer = null;
 
@@ -56,51 +56,18 @@
 
     /* ---------------- demo menu (the ⋯ on My week) ---------------- */
 
+    /**
+     * The one option a tester can reach. "Reset the demo data" and "Start
+     * completely empty" used to live here and were removed: a single stray
+     * tap wiped everything the tester had entered, which is a real risk and
+     * no help to them. Store.seed() and Store.clearAll() still exist for us.
+     */
     App.demoMenu = function () {
-        const jobs = Store.jobs().length;
-        const planned = jobs - Store.available().length;
-
-        W.sheets.menu('Demo options', [
+        W.sheets.menu('Options', [
             {
-                label: 'Week target: ' + Store.settings().weekHours + ' hours',
-                sub: 'What the capacity bar measures against',
-                onPick: () => {
-                    const next = { 32: 36, 36: 40, 40: 45, 45: 32 }[Store.settings().weekHours] || 40;
-                    Store.setWeekHours(next);
-                    W.sheets.close();
-                    App.toast('Week target is now ' + next + ' hours');
-                    renderAll();
-                }
-            },
-            {
-                label: 'Reset the demo data',
-                sub: 'Back to the ' + jobs + ' jobs this started with',
-                onPick: () => {
-                    W.sheets.confirm(
-                        'Reset to the demo data? Everything you added or changed goes away.',
-                        'Reset it',
-                        () => {
-                            Store.seed();
-                            App.toast('Demo data restored');
-                            renderAll();
-                        }
-                    );
-                }
-            },
-            {
-                label: 'Start completely empty',
-                sub: planned + ' planned, ' + Store.available().length + ' waiting — all gone',
-                onPick: () => {
-                    W.sheets.confirm(
-                        'Delete everything, including the clients? You will start with a blank app.',
-                        'Empty it',
-                        () => {
-                            Store.clearAll();
-                            App.toast('Everything cleared');
-                            renderAll();
-                        }
-                    );
-                }
+                label: 'Hours in your week',
+                sub: 'Now ' + U.minutesToHours(Store.settings().weekHours * 60) + ' hours \u2014 what the bar measures against',
+                onPick: () => W.sheets.weekTarget(renderAll)
             }
         ]);
     };

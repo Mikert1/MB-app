@@ -94,9 +94,17 @@
 
     Store.settings = () => data.settings;
 
+    /**
+     * Hours in a working week, as typed by the user. Quarter-hour steps, so a
+     * 37,5-hour week works, and refuses anything that is not a sane number
+     * rather than silently storing nonsense.
+     */
     Store.setWeekHours = function (hours) {
-        data.settings.weekHours = Math.max(1, Math.round(hours));
+        const n = Number(hours);
+        if (!isFinite(n) || n <= 0 || n > 168) return false;
+        data.settings.weekHours = Math.round(n * 4) / 4;
         save();
+        return true;
     };
 
     /* ---------------- clients ---------------- */
@@ -117,6 +125,16 @@
             location: String(fields.location || '').trim()
         };
         data.clients.push(client);
+        save();
+        return client;
+    };
+
+    Store.updateClient = function (id, fields) {
+        const client = Store.client(id);
+        if (!client) return null;
+        const name = String(fields.name || '').trim();
+        if (name) client.name = name;
+        client.location = String(fields.location || '').trim();
         save();
         return client;
     };
@@ -250,6 +268,48 @@
             else mins += job.planned.durationMin;
         });
         return { count: jobs.length, mins: mins, unknown: unknown };
+    };
+
+    /**
+     * One client's work, split the way the Clients page reads it: what is
+     * still waiting, what is booked in, and what has already been done.
+     */
+    Store.jobsForClient = function (clientId) {
+        const mine = data.jobs.filter(j => j.clientId === clientId);
+        const byNewestDone = (a, b) => String(b.doneAt).localeCompare(String(a.doneAt));
+        const byDay = (a, b) => {
+            const d = a.planned.date.localeCompare(b.planned.date);
+            if (d !== 0) return d;
+            return U.toMinutes(a.planned.start || '99:99') - U.toMinutes(b.planned.start || '99:99');
+        };
+
+        const done = mine.filter(j => j.doneAt).sort(byNewestDone);
+        const planned = mine.filter(j => j.planned && !j.doneAt).sort(byDay);
+        const waiting = mine.filter(j => !j.planned && !j.doneAt)
+            .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+
+        // Hours actually worked for this client, which is the number a company
+        // wants when it asks "what have we done for them".
+        const minutes = done.reduce((sum, j) => {
+            if (j.planned && j.planned.durationMin != null) return sum + j.planned.durationMin;
+            return sum + (j.estimateMin || 0);
+        }, 0);
+
+        return { waiting: waiting, planned: planned, done: done, minutes: minutes, total: mine.length };
+    };
+
+    /** Everything finished, newest first — the "previous work" archive. */
+    Store.doneJobs = function () {
+        return data.jobs.filter(j => j.doneAt)
+            .sort((a, b) => String(b.doneAt).localeCompare(String(a.doneAt)));
+    };
+
+    /** Minutes worked across every finished job. */
+    Store.doneMinutes = function () {
+        return Store.doneJobs().reduce((sum, j) => {
+            if (j.planned && j.planned.durationMin != null) return sum + j.planned.durationMin;
+            return sum + (j.estimateMin || 0);
+        }, 0);
     };
 
     /** The address to show: the job's own, else the linked client's. */
@@ -392,6 +452,29 @@
             title: 'Quote visit — full bathroom', clientId: c.devries.id,
             estimateMin: 240, priority: 'normal', createdAt: hoursAgo(24 * 6)
         }, [day(d2), '13:00', 240]);
+
+        /* --- finished work from earlier weeks, so the Clients page and the
+               archive have a history to show on a first run --- */
+        [
+            [-21, 'parkzicht', 'Boiler service — yearly check', 180, '08:00'],
+            [-19, 'centraal', 'Shower mixer replaced, room 12', 120, '09:30'],
+            [-18, 'vandijk', 'Oven gas line checked', 90, '13:00'],
+            [-15, 'jansen', 'Blocked kitchen drain', 60, '10:00'],
+            [-14, 'parkzicht', 'Two radiators bled, flat 3', 90, '14:00'],
+            [-12, 'veldhuis', 'Toilet cistern replaced', 120, '08:30'],
+            [-11, 'dehoek', 'Dishwasher connection', 150, '11:00'],
+            [-8, 'timmer', 'Cold room drain unblocked', 120, '07:30'],
+            [-7, 'centraal', 'Yearly check — 14 bathrooms', 480, '08:00'],
+            [-5, 'groen', 'Outdoor tap frost valve', 60, '15:00'],
+            [-4, 'devries', 'Quote visit — bathroom', 90, '16:00'],
+            [-3, 'mulder', 'Leaking washing machine tap', 60, '09:00']
+        ].forEach(row => {
+            const date = U.addDaysIso(todayIso, row[0]);
+            make({
+                title: row[2], clientId: c[row[1]].id, estimateMin: row[3],
+                priority: 'normal', createdAt: hoursAgo(-row[0] * 24 + 30)
+            }, [date, row[4], row[3]], true);
+        });
 
         /* --- waiting in Available work --- */
         make({

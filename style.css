@@ -593,6 +593,150 @@ button {
 .incomplete b { color: var(--text-secondary); font-weight: 700; }
 
 /* ============================================================
+   Page 4 — clients, and the work already done
+   ============================================================ */
+.prevWork {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: 13px 14px;
+    margin: 6px 0 16px;
+    border-radius: 14px;
+    background-color: var(--bg-card);
+    box-shadow: inset 0 0 0 1px var(--edge);
+}
+.prevWork:hover { box-shadow: inset 0 0 0 1px var(--accent-line); }
+.prevWork:active { transform: scale(.99); }
+.prevIcon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background-color: var(--bg-raised);
+    color: var(--success);
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+}
+.prevIcon svg { width: 17px; height: 17px; }
+.prevText { flex: 1; min-width: 0; }
+.prevText b { display: block; font-size: .92rem; font-weight: 700; color: var(--text-bright); }
+.prevText small { display: block; margin-top: 2px; font-size: .76rem; color: var(--text-dim); }
+.prevChev { width: 15px; height: 15px; flex: 0 0 auto; color: var(--text-faint); }
+
+.clientCard {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: 12px 13px;
+    margin-bottom: 8px;
+    border-radius: 13px;
+    background-color: var(--bg-card);
+}
+.clientCard:hover { box-shadow: inset 0 0 0 1px var(--accent-line); }
+.clientCard:active { transform: scale(.99); }
+.clientCardText { flex: 1; min-width: 0; }
+.clientCardText b {
+    display: block;
+    font-size: .93rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.clientCardText small {
+    display: block;
+    margin-top: 1px;
+    font-size: .76rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.clientCardStats { display: block; margin-top: 4px; font-size: .72rem; color: var(--text-faint); }
+/* Jobs still open for this client: the one number worth pulling out. */
+.clientCardOpen {
+    flex: 0 0 auto;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 11px;
+    background-color: var(--accent-tint);
+    box-shadow: inset 0 0 0 1px var(--accent-line);
+    color: var(--accent-soft);
+    font-size: .7rem;
+    font-weight: 800;
+    line-height: 22px;
+    text-align: center;
+}
+
+/* --- a client's own sheet --- */
+.clientStatRow { display: flex; gap: 8px; margin-bottom: 14px; }
+.clientStat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 11px 10px;
+    border-radius: 12px;
+    background-color: var(--bg-card);
+    text-align: center;
+}
+.clientStat b { font-size: 1.05rem; font-weight: 800; color: var(--text-bright); }
+.clientStat small { font-size: .68rem; color: var(--text-dim); }
+.clientAddress {
+    display: flex;
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border-radius: 11px;
+    background-color: var(--bg-inset);
+    font-size: .8rem;
+    color: var(--text-secondary);
+}
+
+/* --- one job as a compact line, in a client's sheet and the archive --- */
+.jobLine {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 7px;
+    border-radius: 11px;
+    background-color: var(--bg-card);
+}
+.jobLine:hover { box-shadow: inset 0 0 0 1px var(--accent-line); }
+.jobLine:active { transform: scale(.99); }
+.jobLineMain { flex: 1; min-width: 0; }
+.jobLineTitle {
+    display: block;
+    font-size: .87rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-primary);
+}
+.jobLineSub {
+    display: block;
+    margin-top: 2px;
+    font-size: .74rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.jobLineAside {
+    flex: 0 0 auto;
+    font-size: .76rem;
+    font-weight: 700;
+    color: var(--text-faint);
+}
+
+.archiveSheet .jobLine { margin-bottom: 7px; }
+.archiveSheet > [data-role="list"] { margin-top: 12px; }
+
+/* ============================================================
    Page 3 — the job form (shared with the edit sheet)
    ============================================================ */
 .hint {
@@ -649,6 +793,7 @@ textarea.inp { resize: none; line-height: 1.5; }
     color: var(--accent-soft);
 }
 .inpNote svg { width: 11px; height: 11px; flex: 0 0 auto; }
+.inpNote.plain { color: var(--text-dim); }
 
 .clientPick, .clientEmpty, .clientRow, .newClientRow {
     display: flex;
@@ -1012,6 +1157,25 @@ textarea.inp { resize: none; line-height: 1.5; }
 }
 .schedBlock .schedMain { padding: 13px; font-size: .85rem; }
 .schedBlock .rowBtns { margin-top: 8px; }
+
+/* A fold-away section inside a sheet (the client's own details). */
+.detailsToggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    margin-top: 18px;
+    padding: 13px 14px;
+    border-radius: 12px;
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: .85rem;
+    font-weight: 700;
+}
+.detailsToggle svg { width: 15px; height: 15px; flex: 0 0 auto; transition: transform .2s ease; }
+.detailsToggle.open { color: var(--text-bright); }
+.detailsToggle.open svg { transform: rotate(180deg); }
 
 /* --- client sheet --- */
 .clientList { display: flex; flex-direction: column; gap: 7px; margin-top: 11px; }
