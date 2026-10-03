@@ -219,6 +219,74 @@
     };
 
     /* ============================================================
+       "Add to this day" — the waiting work, aimed at one date.
+       Opened by the + on a day header in My week. Tapping a job
+       puts it on that day straight away: no time needed, which
+       is the whole point of reaching for this instead of the
+       planner.
+       ============================================================ */
+    Sheets.pickForDay = function (iso, onPlanned) {
+        const body = document.createElement('div');
+        body.className = 'pickList';
+
+        const waiting = Store.available().slice().sort((a, b) => {
+            // urgent first, then whatever is due soonest, then oldest entry
+            const rank = p => (p === 'urgent' ? 0 : p === 'high' ? 1 : p === 'normal' ? 2 : 3);
+            if (rank(a.priority) !== rank(b.priority)) return rank(a.priority) - rank(b.priority);
+            if (a.deadline && b.deadline && a.deadline !== b.deadline) return a.deadline.localeCompare(b.deadline);
+            if (a.deadline && !b.deadline) return -1;
+            if (!a.deadline && b.deadline) return 1;
+            return a.createdAt.localeCompare(b.createdAt);
+        });
+
+        if (!waiting.length) {
+            const empty = U.clone('tpl-emptyState');
+            const er = U.roles(empty);
+            U.setText(er.title, 'Nothing is waiting');
+            U.setText(er.sub, 'Everything you have entered is already planned in. Use the red + to add new work.');
+            body.appendChild(empty);
+        }
+
+        waiting.forEach(job => {
+            const row = U.clone('tpl-pickJob');
+            const rr = U.roles(row);
+            U.setText(rr.title, job.title);
+
+            /* One line of the facts that help you decide, nothing more. */
+            const bits = [];
+            const client = Store.clientNameOf(job) || Store.locationOf(job);
+            if (client) bits.push(client);
+            if (job.estimateMin != null) bits.push(U.duration(job.estimateMin));
+            const dl = U.deadline(job.deadline);
+            if (dl) bits.push(dl.text.toLowerCase());
+            U.setText(rr.sub, bits.join(' · '));
+
+            if (job.priority === 'urgent' || job.priority === 'high') {
+                U.setText(rr.chip, job.priority);
+                rr.chip.classList.add(job.priority);
+                U.toggle(rr.chip, true);
+            }
+
+            row.addEventListener('click', () => {
+                // The estimate rides along as the duration so the day's hours
+                // stay useful, but no start time is invented.
+                Store.planJob(job.id, iso, null, job.estimateMin);
+                Sheets.close();
+                W.app.toast('Added to ' + U.dayName(iso));
+                if (onPlanned) onPlanned();
+            });
+
+            body.appendChild(row);
+        });
+
+        open('Add to ' + U.dayName(iso) + ' ' + U.shortDate(iso), body, {
+            sub: waiting.length
+                ? U.plural(waiting.length, 'job', 'jobs') + ' waiting — tap one to put it on this day'
+                : null
+        });
+    };
+
+    /* ============================================================
        Job sheet — the whole record, editable, with its actions
        ============================================================ */
     Sheets.job = function (jobId, onChanged) {
@@ -244,22 +312,37 @@
             add(U.age(fresh.createdAt));
             if (fresh.createdBy && fresh.createdBy !== Store.settings().me) add('by ' + fresh.createdBy);
 
-            if (fresh.planned) {
-                add(U.dayShort(fresh.planned.date) + ' ' + U.shortDate(fresh.planned.date) +
-                    ', ' + U.slotLabel(fresh.planned), 'accent');
-            } else {
-                add('Not planned yet', 'ghost');
-            }
             if (fresh.doneAt) add('Done', 'ok');
         }
 
+        /**
+         * The schedule block. Says in words where this job sits and offers the
+         * three things you might want to do about it, all above the fold:
+         * move it, mark it done, or take it out of the week again.
+         */
         function renderActions() {
             const fresh = Store.job(jobId);
             if (!fresh) return;
-            U.setText(r.replanLabel, fresh.planned ? 'Move to another slot' : 'Plan it');
+            const planned = fresh.planned;
+
+            r.sched.classList.toggle('isPlanned', !!planned);
+            U.setText(r.schedLabel, planned ? 'In the week' : 'Not in the week yet');
+
+            if (planned) {
+                U.setText(r.schedWhen, U.dayName(planned.date) + ' ' + U.shortDate(planned.date) +
+                    ' · ' + U.slotLabel(planned).toLowerCase());
+            } else {
+                U.setText(r.schedWhen, 'Nothing booked yet');
+            }
+
+            U.setText(r.replanLabel, planned ? 'Change the day or time' : 'Put it in the week');
+            // Planning is the main move on an unplanned job; on one already in
+            // the week, changing it is an adjustment, so it steps back a notch.
+            r.replanBtn.classList.toggle('primary', !planned);
+            r.replanBtn.classList.toggle('outline', !!planned);
+
             U.setText(r.doneLabel, fresh.doneAt ? 'Not done after all' : 'Mark done');
-            U.toggle(r.unplanBtn, !!fresh.planned);
-            U.toggle(r.doneBtn, !!fresh.planned);
+            U.toggle(r.plannedBtns, !!planned);
         }
 
         const form = W.jobForm.mount(r.form, job);

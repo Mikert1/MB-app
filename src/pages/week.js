@@ -89,6 +89,10 @@
         } else {
             jobs.forEach(job => br.jobs.appendChild(jobCard(job)));
         }
+
+        // Both the header's + and the empty-day placeholder read the date off
+        // here, so neither needs its own copy of it.
+        block.dataset.date = iso;
         return block;
     }
 
@@ -234,6 +238,16 @@
                 if (act.dataset.act === 'nextWeek') { monday = U.addDays(monday, 7); render(); }
                 if (act.dataset.act === 'thisWeek') { monday = U.mondayOf(new Date()); render(); }
                 if (act.dataset.act === 'demoMenu') W.app.demoMenu();
+
+                if (act.dataset.act === 'addToDay') {
+                    const day = act.closest('.day');
+                    if (!day) return;
+                    W.sheets.pickForDay(day.dataset.date, () => {
+                        render();
+                        W.app.refreshBadge();
+                        W.pages.avail.render();
+                    });
+                }
             });
         },
 

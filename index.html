@@ -224,6 +224,11 @@
       <div class="dayNum" data-role="num"></div>
       <div class="dayName" data-role="name"></div>
       <div class="dayLoad" data-role="load"></div>
+      <!-- Put something on this particular day: opens the waiting work,
+           already aimed at this date. -->
+      <button class="dayAdd" data-act="addToDay" aria-label="Add work to this day">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
     </div>
     <div data-role="jobs"></div>
   </div>
@@ -252,7 +257,7 @@
 </template>
 
 <template id="tpl-emptyDay">
-  <button class="emptyDay" data-goto="avail">Nothing planned — pick something from Available work</button>
+  <button class="emptyDay" data-act="addToDay">Nothing planned — tap to pick something</button>
 </template>
 
 <template id="tpl-availCard">
@@ -281,6 +286,19 @@
       </div>
     </div>
   </div>
+</template>
+
+<template id="tpl-pickJob">
+  <button class="pickRow">
+    <span class="pickMain">
+      <span class="pickTitle" data-role="title"></span>
+      <span class="pickSub" data-role="sub"></span>
+    </span>
+    <span class="pickChip" data-role="chip" hidden></span>
+    <span class="pickPlus">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </span>
+  </button>
 </template>
 
 <template id="tpl-chip">
@@ -460,27 +478,36 @@
 
 <template id="tpl-jobSheet">
   <div class="jobSheet">
+    <!-- How this job is scheduled comes first and owns its own block: it is the
+         thing people open a planned job to change, and burying it under the
+         details form made it look like the schedule was fixed. -->
+    <div class="schedBlock" data-role="sched">
+      <p class="schedLabel" data-role="schedLabel">In the week</p>
+      <p class="schedWhen" data-role="schedWhen">—</p>
+      <button class="btn primary schedMain" data-act="replan" data-role="replanBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+        <span data-role="replanLabel">Put it in the week</span>
+      </button>
+      <div class="rowBtns" data-role="plannedBtns" hidden>
+        <button class="btn quiet" data-act="toggleDone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <span data-role="doneLabel">Mark done</span>
+        </button>
+        <button class="btn quiet" data-act="unplan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14"/><rect x="3.5" y="5" width="17" height="16" rx="3"/></svg>
+          Take out again
+        </button>
+      </div>
+    </div>
+
     <div class="jobSheetMeta" data-role="meta"></div>
     <div data-role="form"></div>
+
     <div class="actions">
       <button class="btn primary" data-act="saveJob">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
         Save changes
       </button>
-      <button class="btn outline" data-act="replan" data-role="replanBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
-        <span data-role="replanLabel">Plan it</span>
-      </button>
-      <div class="rowBtns">
-        <button class="btn quiet" data-act="toggleDone" data-role="doneBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-          <span data-role="doneLabel">Mark done</span>
-        </button>
-        <button class="btn quiet" data-act="unplan" data-role="unplanBtn" hidden>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16"/><rect x="3.5" y="5" width="17" height="16" rx="3"/></svg>
-          Unplan
-        </button>
-      </div>
       <button class="btn danger" data-act="deleteJob">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h18M8 5.5V3.5h8v2M6 5.5l1 14a2 2 0 0 0 2 1.9h6a2 2 0 0 0 2-1.9l1-14"/></svg>
         Delete job
