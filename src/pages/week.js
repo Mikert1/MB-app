@@ -14,8 +14,12 @@
         const cr = U.roles(card);
         if (job.doneAt) card.classList.add('isDone');
 
-        // The rail is the job's status: that is the whole colour language now.
-        W.chips.paint(cr.rail, Store.status(job.status).tone);
+        /* The status is the card's main tag: it colours the rail and sits in
+           the top corner on its own. Every other tag goes in the row below. */
+        const status = Store.status(job.status);
+        W.chips.paint(cr.rail, status.tone);
+        W.chips.paint(cr.statusChip, status.tone);
+        U.setText(cr.statusText, status.label);
 
         /* All three shapes of a slot. A job with no clock time gets a dash and
            an "any time" chip, never the words split over two stacked lines. */
@@ -90,30 +94,6 @@
         // both the header's + and the empty-day placeholder read the date here
         block.dataset.date = iso;
         return block;
-    }
-
-    /* ---------------- the capacity block ---------------- */
-
-    function capacityCard(days) {
-        const card = U.clone('tpl-capacity');
-        const cr = U.roles(card);
-        const load = Store.weekLoad(days);
-
-        U.setText(cr.planned, (U.duration(load.total) || '0u') + (load.unknown ? '+' : ''));
-        U.setText(cr.target, U.duration(load.target));
-        U.setText(cr.jobCount, U.plural(load.count, 'job', 'jobs') +
-            (load.unknown ? ' · ' + load.unknown + ' untimed' : ''));
-        U.setText(cr.freeLabel, load.over ? U.duration(load.over) + ' over' : U.duration(load.free) + ' free');
-        U.setText(cr.capUnder, load.over ? 'planned — over your week' : 'planned this week');
-
-        // done, still ahead, and the part spilling past the week's target
-        const scale = Math.max(load.target, load.total) || 1;
-        const spill = Math.min(load.over, load.ahead);
-        cr.barDone.style.width = (load.done / scale * 100) + '%';
-        cr.barAhead.style.width = ((load.ahead - spill) / scale * 100) + '%';
-        cr.barOver.style.width = (spill / scale * 100) + '%';
-
-        return card;
     }
 
     /* ---------------- the nudge ---------------- */
@@ -218,7 +198,6 @@
 
         const keepScroll = r.weekBody.scrollTop;
         const body = U.empty(r.weekBody);
-        body.appendChild(capacityCard(days));
 
         const nudge = nudgeCard();
         if (nudge) body.appendChild(nudge);

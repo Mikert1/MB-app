@@ -23,6 +23,33 @@
         return row;
     }
 
+    /**
+     * This week in hours, measured against the target below it. It used to sit
+     * at the top of My week, where it was the first thing you saw every time;
+     * it reads better here, next to the setting that defines it.
+     */
+    function capacityCard() {
+        const card = U.clone('tpl-capacity');
+        const cr = U.roles(card);
+        const days = U.weekDays(U.mondayOf(new Date()));
+        const load = Store.weekLoad(days);
+
+        U.setText(cr.planned, (U.duration(load.total) || '0u') + (load.unknown ? '+' : ''));
+        U.setText(cr.target, U.duration(load.target));
+        U.setText(cr.jobCount, U.plural(load.count, 'job', 'jobs') +
+            (load.unknown ? ' \u00b7 ' + load.unknown + ' untimed' : ''));
+        U.setText(cr.freeLabel, load.over ? U.duration(load.over) + ' over' : U.duration(load.free) + ' free');
+        U.setText(cr.capUnder, load.over ? 'planned \u2014 over your week' : 'planned this week');
+
+        const scale = Math.max(load.target, load.total) || 1;
+        const spill = Math.min(load.over, load.ahead);
+        cr.barDone.style.width = (load.done / scale * 100) + '%';
+        cr.barAhead.style.width = ((load.ahead - spill) / scale * 100) + '%';
+        cr.barOver.style.width = (spill / scale * 100) + '%';
+
+        return card;
+    }
+
     function sectionLabel(text) {
         const el = U.clone('tpl-sectionLabel');
         const sr = U.roles(el);
@@ -51,9 +78,10 @@
         body.appendChild(stats);
 
         body.appendChild(sectionLabel('Your week'));
+        body.appendChild(capacityCard());
         body.appendChild(settingRow(
             'Hours in your week',
-            'Now ' + U.minutesToHours(Store.settings().weekHours * 60) + ' hours — what the bar on My week measures against',
+            'Now ' + U.minutesToHours(Store.settings().weekHours * 60) + ' hours — what the bar above measures against',
             () => W.sheets.weekTarget(() => {
                 render();
                 W.pages.week.render();

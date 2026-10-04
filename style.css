@@ -61,11 +61,11 @@
        A card's colour comes from where the job stands with the client, so
        these are the only tints a card ever wears. Priority is a tag now, and
        lives in the --prio-* set below. */
-    --status-available: #8A949C;
-    --status-quote:     #9B7BFF;
-    --status-movable:   #FFBB00;
-    --status-agreed:    #5ECB7F;
-    --status-done:      #5A6168;
+    --status-available:  #8A949C;   /* grey  — nothing arranged */
+    --status-canmove:    #FF7A2F;   /* orange — pencilled in */
+    --status-agreedmove: #FFC400;   /* yellow — agreed, but shiftable */
+    --status-agreed:     #E5063C;   /* red    — fixed, do not move */
+    --status-done:       #5ECB7F;   /* green  — finished */
 
     /* priority, worn only by its own chip */
     --prio-urgent: #E5063C;
@@ -420,8 +420,11 @@ button {
     /* Full bleed: the negative side margins cancel the list's padding so the
        header covers the cards edge to edge as they pass under it, and its own
        padding puts the text back in line with them. */
-    margin: 0 -18px 8px;
-    padding: 10px 18px 8px;
+    /* No bottom margin: a sticky box is held inside its containing block by
+       its MARGIN box, so a margin here would stop the header short of the end
+       of its own day and hand over to the next one with a gap. */
+    margin: 0 -18px;
+    padding: 10px 18px 14px;
     background-color: var(--bg-app);
 }
 .dayJobs { position: relative; z-index: 1; display: flow-root; }
@@ -492,9 +495,20 @@ button {
     background-color: var(--tone, var(--bg-chip));
 }
 .job .meat { flex: 1; min-width: 0; }
+/* Title on the left, status on the right: the status is the one label that
+   says where this job stands, so it gets the corner to itself. */
+.topRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 3px;
+}
+.topRow .tagChip, .titleRow .tagChip { flex: 0 0 auto; margin-top: 1px; }
+
 .job .jobTitle {
     display: block;
-    margin-bottom: 3px;
+    flex: 1;
+    min-width: 0;
     font-size: .92rem;
     font-weight: 700;
     line-height: 1.3;
@@ -1318,6 +1332,9 @@ textarea.inp { resize: none; line-height: 1.5; }
     display: flex;
     align-items: center;
     gap: 11px;
+    /* a <button> sizes to its content, so rows in a plain block container (the
+       Profile page) would each come out a different width */
+    width: 100%;
     padding: 13px;
     border-radius: 12px;
     background-color: var(--bg-card);

@@ -17,7 +17,7 @@
 
     /* The shape we persist. `version` lets a later build migrate instead
        of throwing a tester's data away. */
-    const EMPTY = { version: 2, jobs: [], clients: [], tags: [], settings: { weekHours: 40, me: 'You' } };
+    const EMPTY = { version: 3, jobs: [], clients: [], tags: [], settings: { weekHours: 40, me: 'You' } };
 
     /**
      * Where a job stands with the client. This is the thing that colours a
@@ -28,16 +28,20 @@
      */
     const STATUSES = [
         { id: 'available', label: 'Available', tone: '--status-available',
-          hint: 'In the pile, nothing agreed yet' },
-        { id: 'quote', label: 'Quote', tone: '--status-quote',
-          hint: 'A price has gone out, waiting to hear back' },
-        { id: 'movable', label: 'Agreed, can move',  tone: '--status-movable',
-          hint: 'Talked through, but the day can still shift' },
+          hint: 'In the pile, nothing arranged yet' },
+        { id: 'canmove', label: 'Can move', tone: '--status-canmove',
+          hint: 'Pencilled in — shift it whenever you like' },
+        { id: 'agreedmove', label: 'Agreed, can move', tone: '--status-agreedmove',
+          hint: 'Talked through with the client, but the day can still shift' },
         { id: 'agreed', label: 'Agreed', tone: '--status-agreed',
           hint: 'Fixed with the client — do not move it' },
         { id: 'done', label: 'Done', tone: '--status-done',
           hint: 'Finished' }
     ];
+
+    /* Statuses that have been renamed since a tester last opened the app. Their
+       work keeps its meaning instead of being dumped back on the pile. */
+    const RENAMED_STATUS = { quote: 'canmove', movable: 'agreedmove' };
 
     /** The palette a custom tag can be given. */
     const TAG_COLOURS = ['red', 'orange', 'amber', 'green', 'teal', 'violet', 'pink', 'grey'];
@@ -97,6 +101,9 @@
         out.tags = Array.isArray(out.tags) ? out.tags : [];
 
         out.jobs.forEach(job => {
+            // carry renamed statuses across before judging whether one is valid
+            if (RENAMED_STATUS[job.status]) job.status = RENAMED_STATUS[job.status];
+
             // v1 had no status: anything already ticked off is done, the rest
             // goes back in the pile as available.
             if (!job.status || !STATUSES.some(st => st.id === job.status)) {
@@ -110,7 +117,7 @@
             if (TAG_COLOURS.indexOf(tag.color) < 0) tag.color = 'grey';
         });
 
-        out.version = 2;
+        out.version = 3;
         return out;
     }
 
@@ -688,7 +695,7 @@
         make({
             title: 'Install 2 outdoor taps', clientId: c.groen.id,
             estimateMin: 180, priority: 'normal', createdAt: hoursAgo(24 * 5),
-            status: 'movable'
+            status: 'agreedmove'
         }, [day(d1), '13:30', 180]);
 
         make({
@@ -700,7 +707,7 @@
         make({
             title: 'Quote visit — full bathroom', clientId: c.devries.id,
             estimateMin: 240, priority: 'normal', createdAt: hoursAgo(24 * 6),
-            status: 'movable'
+            status: 'agreedmove'
         }, [day(d2), '13:00', 240]);
 
         /* --- finished work from earlier weeks, so the Clients page and the
@@ -743,7 +750,7 @@
         make({
             title: 'Replace mixer tap, 3 rooms', clientId: c.centraal.id,
             estimateMin: 300, priority: 'high', deadline: U.addDaysIso(todayIso, 6),
-            createdAt: hoursAgo(24 * 6), status: 'quote',
+            createdAt: hoursAgo(24 * 6), status: 'canmove',
             tagIds: [tagParts.id]
         });
 
@@ -757,7 +764,7 @@
         make({
             title: 'Yearly maintenance contract — 8 units', clientId: c.parkzicht.id,
             estimateMin: 960, priority: 'normal', createdAt: hoursAgo(24 * 15),
-            status: 'quote', tagIds: [tagRecurring.id]
+            status: 'canmove', tagIds: [tagRecurring.id]
         });
 
         make({

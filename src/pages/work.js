@@ -58,7 +58,10 @@
         const el = U.clone('tpl-workCard');
         const cr = U.roles(el);
 
-        W.chips.paint(cr.rail, Store.status(job.status).tone);
+        const status = Store.status(job.status);
+        W.chips.paint(cr.rail, status.tone);
+        W.chips.paint(cr.statusChip, status.tone);
+        U.setText(cr.statusText, status.label);
         U.setText(cr.title, job.title);
 
         const client = Store.clientNameOf(job);
@@ -86,7 +89,8 @@
                 (job.planned.start ? ' · ' + job.planned.start : '')));
         }
 
-        W.chips.fill(cr.chips, job, { extra: extra });
+        // status: false — it already has the corner to itself
+        W.chips.fill(cr.chips, job, { status: false, extra: extra });
 
         const age = U.age(job.createdAt);
         const by = job.createdBy && job.createdBy !== Store.settings().me ? ' by ' + job.createdBy : '';
