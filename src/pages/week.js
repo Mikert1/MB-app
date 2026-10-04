@@ -1,44 +1,34 @@
-/** Page 1 — the week you committed to. */
+/** Page 1 — the week you committed to. Opens with today at the top. */
 (function (W) {
     'use strict';
 
     const U = W.util;
     const Store = W.store;
 
-    let section, r, monday;
+    let section, r, monday, holdScroll = false, pendingScroll = null;
 
-    function priorityClass(job) {
-        if (job.doneAt) return 'isDone';
-        if (job.priority === 'urgent') return 'p-urgent';
-        if (job.priority === 'high') return 'p-high';
-        return '';
-    }
-
-    function addChip(host, text, tone) {
-        const chip = U.clone('tpl-chip');
-        if (tone) chip.classList.add(tone);
-        U.setText(U.roles(chip).text, text);
-        host.appendChild(chip);
-    }
+    /* ---------------- a job on a day ---------------- */
 
     function jobCard(job) {
         const card = U.clone('tpl-weekJob');
         const cr = U.roles(card);
-        const cls = priorityClass(job);
-        if (cls) card.classList.add(cls);
+        if (job.doneAt) card.classList.add('isDone');
 
-        /* All three shapes of a slot. A job with no time reads "Any time", a
-           job with a time but no length just shows when it starts. */
+        // The rail is the job's status: that is the whole colour language now.
+        W.chips.paint(cr.rail, Store.status(job.status).tone);
+
+        /* All three shapes of a slot. A job with no clock time gets a dash and
+           an "any time" chip, never the words split over two stacked lines. */
         if (job.planned.start) {
             U.setText(cr.start, job.planned.start);
             U.setText(cr.end, job.planned.durationMin == null
                 ? '' : U.toClock(U.toMinutes(job.planned.start) + job.planned.durationMin));
         } else {
-            // One phrase in the bright line, nothing in the dim one — split
-            // across the two it would read as a glitch rather than a label.
-            U.setText(cr.start, 'Any time');
+            card.classList.add('noTime');
+            U.setText(cr.start, '—');
             U.setText(cr.end, '');
         }
+
         U.setText(cr.title, job.title);
 
         const client = Store.clientNameOf(job);
@@ -49,51 +39,21 @@
         U.toggle(cr.locWrap, !!location);
         U.toggle(cr.sep, !!client && !!location);
 
-        if (job.doneAt) {
-            addChip(cr.chips, 'Done', 'ok');
-        } else if (job.priority === 'urgent') {
-            addChip(cr.chips, 'Urgent', 'accent');
-        } else if (job.priority === 'high') {
-            addChip(cr.chips, 'High', 'warn');
-        }
-        // No duration, no chip — a job nobody has timed is not a problem.
-        if (job.planned.durationMin != null) addChip(cr.chips, U.duration(job.planned.durationMin));
+        /* The rail already carries the status, so it is not repeated as a chip
+           here — only the things the rail cannot say. */
+        const extra = [];
+        if (!job.planned.start) extra.push(W.chips.plain('Any time'));
+        if (job.planned.durationMin != null) extra.push(W.chips.plain(U.duration(job.planned.durationMin)));
 
-        // On the week view a deadline is only worth repeating when it is tight —
-        // the job already has a slot, so a date three weeks out is just noise.
         const dl = job.doneAt ? null : U.deadline(job.deadline);
         if (dl && (dl.tone === 'over' || dl.tone === 'accent')) {
-            addChip(cr.chips, dl.text, 'accent');
+            extra.push(W.chips.plain(dl.text, 'accent'));
         }
 
-        card.addEventListener('click', () => W.sheets.job(job.id, render));
+        W.chips.fill(cr.chips, job, { status: false, extra: extra });
+
+        card.addEventListener('click', () => W.sheets.job(job.id, api.render));
         return card;
-    }
-
-    function dayBlock(iso) {
-        const block = U.clone('tpl-day');
-        const br = U.roles(block);
-        const today = U.today();
-
-        if (iso === today) block.classList.add('today');
-        else if (iso < today) block.classList.add('past');
-
-        U.setText(br.num, U.dayOfMonth(iso));
-        U.setText(br.name, U.dayName(iso) + (iso === today ? ' · today' : ''));
-
-        const jobs = Store.plannedOn(iso);
-        U.setText(br.load, jobs.length ? dayLoadLabel(iso) : 'free');
-
-        if (!jobs.length) {
-            br.jobs.appendChild(U.clone('tpl-emptyDay'));
-        } else {
-            jobs.forEach(job => br.jobs.appendChild(jobCard(job)));
-        }
-
-        // Both the header's + and the empty-day placeholder read the date off
-        // here, so neither needs its own copy of it.
-        block.dataset.date = iso;
-        return block;
     }
 
     /**
@@ -107,6 +67,33 @@
         return jobs + ' · ' + U.duration(load.mins) + (load.unknown ? '+' : '');
     }
 
+    function dayBlock(iso) {
+        const block = U.clone('tpl-day');
+        const br = U.roles(block);
+        const today = U.today();
+
+        if (iso === today) block.classList.add('today');
+        else if (iso < today) block.classList.add('past');
+
+        U.setText(br.num, U.dayOfMonth(iso));
+        U.setText(br.name, iso === today ? 'Today' : U.dayName(iso));
+
+        const jobs = Store.plannedOn(iso);
+        U.setText(br.load, jobs.length ? dayLoadLabel(iso) : 'free');
+
+        if (!jobs.length) {
+            br.jobs.appendChild(U.clone('tpl-emptyDay'));
+        } else {
+            jobs.forEach(job => br.jobs.appendChild(jobCard(job)));
+        }
+
+        // both the header's + and the empty-day placeholder read the date here
+        block.dataset.date = iso;
+        return block;
+    }
+
+    /* ---------------- the capacity block ---------------- */
+
     function capacityCard(days) {
         const card = U.clone('tpl-capacity');
         const cr = U.roles(card);
@@ -114,36 +101,22 @@
 
         U.setText(cr.planned, (U.duration(load.total) || '0u') + (load.unknown ? '+' : ''));
         U.setText(cr.target, U.duration(load.target));
-        // A "+" rather than a silently low number when some jobs have no
-        // duration: the hours shown are the ones we actually know.
-        U.setText(cr.jobCount, U.plural(load.count, 'job', 'jobs') + (load.unknown ? ' · ' + load.unknown + ' untimed' : ''));
+        U.setText(cr.jobCount, U.plural(load.count, 'job', 'jobs') +
+            (load.unknown ? ' · ' + load.unknown + ' untimed' : ''));
         U.setText(cr.freeLabel, load.over ? U.duration(load.over) + ' over' : U.duration(load.free) + ' free');
         U.setText(cr.capUnder, load.over ? 'planned — over your week' : 'planned this week');
 
-        // Three segments sharing one track: done, still ahead, and the bit
-        // that spills past the weekly target.
+        // done, still ahead, and the part spilling past the week's target
         const scale = Math.max(load.target, load.total) || 1;
+        const spill = Math.min(load.over, load.ahead);
         cr.barDone.style.width = (load.done / scale * 100) + '%';
-        cr.barAhead.style.width = (load.ahead / scale * 100) + '%';
-        cr.barOver.style.width = '0%';
-        if (load.over) {
-            // paint the overflow in warning amber at the tail of the bar; the
-            // spill can be wider than the "ahead" block when the done hours
-            // alone already passed the target, so clamp instead of going negative
-            const spill = Math.min(load.over, load.ahead);
-            cr.barAhead.style.width = ((load.ahead - spill) / scale * 100) + '%';
-            cr.barOver.style.width = (spill / scale * 100) + '%';
-        }
-
-        U.setText(cr.legendDone, U.duration(load.done) || '0u');
-        U.setText(cr.legendAhead, U.duration(load.ahead) || '0u');
-        U.setText(cr.legendFree, U.duration(load.free) || '0u');
-        U.setText(cr.legendOver, U.duration(load.over) || '0u');
-        U.toggle(cr.legendFreeWrap, !load.over);
-        U.toggle(cr.legendOverWrap, !!load.over);
+        cr.barAhead.style.width = ((load.ahead - spill) / scale * 100) + '%';
+        cr.barOver.style.width = (spill / scale * 100) + '%';
 
         return card;
     }
+
+    /* ---------------- the nudge ---------------- */
 
     function nudgeCard() {
         const waiting = Store.available();
@@ -157,40 +130,93 @@
             return days >= 0 && days <= 1;
         });
 
-        // Only shout when there is a reason to; otherwise stay quiet.
+        // only speak up when there is a reason to
         if (!urgent.length && !overdue.length && !soon.length) return null;
 
         const card = U.clone('tpl-nudge');
         const nr = U.roles(card);
 
         if (overdue.length) {
-            U.setText(nr.nudgeTitle, U.plural(overdue.length, 'job is', 'jobs are') + ' past their deadline');
+            U.setText(nr.nudgeTitle, U.plural(overdue.length, 'job is', 'jobs are') + ' past their date');
         } else if (urgent.length) {
-            U.setText(nr.nudgeTitle, U.plural(urgent.length, 'urgent job', 'urgent jobs') + ' unplanned');
+            U.setText(nr.nudgeTitle, U.plural(urgent.length, 'urgent job', 'urgent jobs') + ' not planned yet');
         } else {
-            U.setText(nr.nudgeTitle, U.plural(soon.length, 'deadline', 'deadlines') + ' coming up');
+            U.setText(nr.nudgeTitle, U.plural(soon.length, 'job needs', 'jobs need') + ' doing soon');
         }
-
-        if (soon.length) {
-            const next = soon.sort((a, b) => a.deadline.localeCompare(b.deadline))[0];
-            const days = U.daysBetween(U.today(), next.deadline);
-            U.setText(nr.nudgeSub, 'One deadline is ' + (days === 0 ? 'today' : 'tomorrow'));
-        } else {
-            U.setText(nr.nudgeSub, U.plural(waiting.length, 'job', 'jobs') + ' waiting in Available work');
-        }
-
+        U.setText(nr.nudgeSub, 'Tap to see what is waiting');
         return card;
     }
+
+    function sectionLabel(text, aside) {
+        const el = U.clone('tpl-sectionLabel');
+        const sr = U.roles(el);
+        U.setText(sr.label, text);
+        U.setText(sr.aside, aside || '');
+        return el;
+    }
+
+    /* ---------------- scrolling ----------------
+       Two jobs here: give the list enough slack past its final day that any
+       day can be brought to the top of the screen, then put today there. */
+
+    /* Looks the tail up rather than taking it as an argument: a second render
+       can land between scheduling this and running it, and we always want to
+       size the tail that is actually on the page. */
+    function sizeTail() {
+        const tail = U.$('.weekTail', r.weekBody);
+        const days = U.$$('.day', r.weekBody);
+        const last = days[days.length - 1];
+        if (!tail || !last) return;
+        /* Just enough that the last day, and nothing more, fills the screen.
+           The list's own bottom padding (which keeps content clear of the
+           navbar) is scrollable too, so it has to come off the tail — without
+           that you scroll a navbar's worth past the last day's header. */
+        const padBottom = parseFloat(getComputedStyle(r.weekBody).paddingBottom) || 0;
+        const room = r.weekBody.clientHeight - last.offsetHeight - padBottom;
+        tail.style.height = Math.max(0, Math.round(room)) + 'px';
+    }
+
+    /**
+     * Put a day at the top of the list. Returns false when the list has no
+     * layout yet — the page is built while #app is still hidden on boot, and
+     * every measurement is zero until it is revealed.
+     */
+    function scrollToDay(iso) {
+        const target = U.$('[data-date="' + iso + '"]', r.weekBody);
+        if (!target || !r.weekBody.clientHeight) return false;
+
+        const top = target.getBoundingClientRect().top
+            - r.weekBody.getBoundingClientRect().top
+            + r.weekBody.scrollTop;
+        r.weekBody.scrollTop = Math.max(0, top);
+        return true;
+    }
+
+    /**
+     * Keep trying until the list can actually be measured. Without this the
+     * one attempt made during boot lands on a zero-height list and silently
+     * does nothing.
+     */
+    function scrollToDaySoon(iso, triesLeft) {
+        if (scrollToDay(iso)) {
+            pendingScroll = null;
+            return;
+        }
+        if (triesLeft <= 0) return;
+        requestAnimationFrame(() => scrollToDaySoon(iso, triesLeft - 1));
+    }
+
+    /* ---------------- render ---------------- */
 
     function render() {
         const days = U.weekDays(monday);
         const today = U.today();
-        const thisMonday = U.iso(U.mondayOf(new Date()));
-        const isThisWeek = U.iso(monday) === thisMonday;
+        const isThisWeek = U.iso(monday) === U.iso(U.mondayOf(new Date()));
 
         U.setText(r.weekLabel, U.weekLabel(monday));
         U.toggle(U.$('[data-act="thisWeek"]', section), !isThisWeek);
 
+        const keepScroll = r.weekBody.scrollTop;
         const body = U.empty(r.weekBody);
         body.appendChild(capacityCard(days));
 
@@ -198,16 +224,13 @@
         if (nudge) body.appendChild(nudge);
 
         if (isThisWeek) {
-            // This week reads as two halves: what is behind you, dimmed, and
-            // what is still coming. Other weeks are just seven days.
             const past = days.filter(d => d < today);
             const ahead = days.filter(d => d >= today);
             const load = Store.weekLoad(days);
 
-            /* Days already gone are folded away once there is work to look at
+            /* Days already gone fold away once there is work to look at
                instead — but on an empty week they stay, so the page reads as a
-               week you can fill rather than the two days that happen to be
-               left. */
+               week you can fill rather than the days that happen to be left. */
             if (past.length && (load.done || !load.count)) {
                 body.appendChild(sectionLabel('Earlier this week',
                     load.done ? U.duration(load.done) + ' done' : ''));
@@ -219,18 +242,28 @@
         } else {
             days.forEach(iso => body.appendChild(dayBlock(iso)));
         }
+
+        const tail = document.createElement('div');
+        tail.className = 'weekTail';
+        body.appendChild(tail);
+
+        /* Boot draws this page twice in quick succession, so each pass has to
+           remember its own intent: one that meant to jump to today still
+           jumps, even if an earlier callback already did it, and only a pass
+           that meant to stay put restores the old position. */
+        const wantToday = isThisWeek && !holdScroll;
+        if (wantToday) pendingScroll = today;
+
+        // after layout, so the heights are real
+        requestAnimationFrame(() => {
+            sizeTail();
+            if (wantToday) scrollToDaySoon(today, 20);
+            else if (pendingScroll) scrollToDaySoon(pendingScroll, 20);
+            else r.weekBody.scrollTop = keepScroll;
+        });
     }
 
-    function sectionLabel(text, aside) {
-        const el = U.clone('tpl-sectionLabel');
-        const sr = U.roles(el);
-        U.setText(sr.label, text);
-        U.setText(sr.aside, aside || '');
-        return el;
-    }
-
-    W.pages = W.pages || {};
-    W.pages.week = {
+    const api = {
         init: function (el) {
             section = el;
             r = U.roles(section);
@@ -243,27 +276,36 @@
                 if (act.dataset.act === 'prevWeek') { monday = U.addDays(monday, -7); render(); }
                 if (act.dataset.act === 'nextWeek') { monday = U.addDays(monday, 7); render(); }
                 if (act.dataset.act === 'thisWeek') { monday = U.mondayOf(new Date()); render(); }
-                if (act.dataset.act === 'demoMenu') W.app.demoMenu();
 
                 if (act.dataset.act === 'addToDay') {
                     const day = act.closest('.day');
                     if (!day) return;
                     W.sheets.pickForDay(day.dataset.date, () => {
-                        render();
+                        api.render();
                         W.app.refreshBadge();
-                        W.pages.avail.render();
+                        W.pages.work.render();
                     });
                 }
             });
         },
 
-        /** Jumping here from elsewhere should always land on the live week. */
+        /** Arriving from another page always lands on the live week, at today. */
         show: function () {
             monday = U.mondayOf(new Date());
+            holdScroll = false;
+            pendingScroll = U.today();
             render();
         },
 
-        render: render
+        /** A re-render caused by an edit keeps the scroll where it is. */
+        render: function () {
+            holdScroll = true;
+            render();
+            holdScroll = false;
+        }
     };
+
+    W.pages = W.pages || {};
+    W.pages.week = api;
 
 }(window));

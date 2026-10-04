@@ -2,7 +2,9 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- user-scalable=no: this is a phone app, and pinch-zoom over a fixed navbar
+     only ever leaves people stranded half-zoomed. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#050909">
 <meta name="description" content="MB app demo — incoming work in, a planned week out.">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -38,9 +40,6 @@
             <p class="hdrSub" data-role="weekLabel">—</p>
           </div>
           <div class="stepper">
-            <button class="iconBtn" data-act="demoMenu" aria-label="Demo options">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>
-            </button>
             <button class="iconBtn" data-act="prevWeek" aria-label="Previous week">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
@@ -58,13 +57,13 @@
       <div class="body" data-role="weekBody"></div>
     </section>
 
-    <!-- ============ PAGE 2 — AVAILABLE WORK ============ -->
-    <section class="page" data-page="avail">
+    <!-- ============ PAGE 2 — WORK ============ -->
+    <section class="page" data-page="work">
       <header class="hdr">
         <div class="hdrTop">
           <div class="hdrText">
-            <h1 class="hdrTitle">Available work</h1>
-            <p class="hdrSub" data-role="availSub">—</p>
+            <h1 class="hdrTitle">Work</h1>
+            <p class="hdrSub" data-role="workSub">—</p>
           </div>
           <button class="iconBtn" data-act="toggleSearch" aria-label="Search">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -73,25 +72,23 @@
 
         <div class="searchWrap" data-role="searchWrap" hidden>
           <svg class="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input class="searchInp" data-role="search" type="search" placeholder="Title, client or location…" autocomplete="off">
+          <input class="searchInp" data-role="search" type="search" placeholder="Title, client or place…" autocomplete="off">
           <button class="searchClear" data-act="clearSearch" aria-label="Clear search">&times;</button>
         </div>
 
-        <div class="filterRow" data-role="filters">
-          <button class="fchip on" data-filter="all">All<span class="cnt"></span></button>
-          <button class="fchip" data-filter="urgent">Urgent<span class="cnt"></span></button>
-          <button class="fchip" data-filter="week">Deadline this week<span class="cnt"></span></button>
-        </div>
+        <!-- One chip per status, built by the page so the labels and colours
+             only ever live in one place. -->
+        <div class="filterRow" data-role="filters"></div>
       </header>
 
-      <div class="body" data-role="availBody">
+      <div class="body" data-role="workBody">
         <div class="sortRow">
-          <span>Sorted by <b data-role="sortLabel">oldest first</b>, urgent on top</span>
+          <span>Sorted by <b data-role="sortLabel">oldest first</b></span>
           <button class="iconBtn small" data-act="sort" aria-label="Change sorting">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
           </button>
         </div>
-        <div data-role="availList"></div>
+        <div data-role="workList"></div>
       </div>
     </section>
 
@@ -101,7 +98,7 @@
         <div class="hdrTop">
           <div class="hdrText">
             <h1 class="hdrTitle">New job</h1>
-            <p class="hdrSub">Takes 5 seconds · finish it later</p>
+            <p class="hdrSub">Only the title is needed</p>
           </div>
           <button class="iconBtn" data-act="resetForm" aria-label="Empty the form">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h18M8 5.5V3.5h8v2M6 5.5l1 14a2 2 0 0 0 2 1.9h6a2 2 0 0 0 2-1.9l1-14"/></svg>
@@ -109,27 +106,30 @@
         </div>
       </header>
 
-      <div class="body">
-        <div class="hint">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-5M12 8h.01"/></svg>
+      <!-- Only the form scrolls; the save buttons stay pinned beneath it. -->
+      <div class="body hasPinned" data-role="addBody">
+        <div class="hint" data-role="addHint">
+          <svg class="hintIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-5M12 8h.01"/></svg>
           <span>On the phone with someone? <b>The title is all you need.</b> Save it now and plan it straight away — anything else can be filled in later, or never.</span>
+          <button class="hintClose" data-act="dismissHint" aria-label="Don't show this again">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
         </div>
 
         <div data-role="addForm"></div>
+      </div>
 
-        <div class="actions">
-          <button class="btn primary" data-act="save">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            Save to available work
-          </button>
-          <button class="btn outline" data-act="saveAndPlan">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
-            Save &amp; plan it now
-          </button>
-        </div>
+      <div class="pinnedActions">
+        <button class="btn primary" data-act="save">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Save
+        </button>
+        <button class="btn outline" data-act="saveAndPlan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+          Save &amp; plan it now
+        </button>
       </div>
     </section>
-
 
     <!-- ============ PAGE 4 — CLIENTS ============ -->
     <section class="page" data-page="clients">
@@ -139,23 +139,34 @@
             <h1 class="hdrTitle">Clients</h1>
             <p class="hdrSub" data-role="clientsSub">—</p>
           </div>
-          <button class="iconBtn" data-act="toggleClientSearch" aria-label="Search">
+          <!-- The same picker a job uses: it searches and it can create one,
+               so this page needs no search field of its own. -->
+          <button class="iconBtn" data-act="openPicker" aria-label="Find or add a client">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           </button>
-        </div>
-
-        <div class="searchWrap" data-role="clientSearchWrap" hidden>
-          <svg class="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input class="searchInp" data-role="clientSearch" type="search" placeholder="Client name or place…" autocomplete="off">
-          <button class="searchClear" data-act="clearClientSearch" aria-label="Clear search">&times;</button>
         </div>
       </header>
 
       <div class="body" data-role="clientsBody"></div>
     </section>
+
+    <!-- ============ PAGE 5 — PROFILE ============ -->
+    <section class="page" data-page="profile">
+      <header class="hdr">
+        <div class="hdrTop">
+          <div class="hdrText">
+            <h1 class="hdrTitle">Profile</h1>
+            <p class="hdrSub">This demo, and your data</p>
+          </div>
+        </div>
+      </header>
+
+      <div class="body" data-role="profileBody"></div>
+    </section>
+
   </main>
 
-  <!-- ============ BOTTOM NAV ============ -->
+  <!-- ============ BOTTOM NAV (fixed, like Planium's) ============ -->
   <nav class="nav">
     <hr>
     <div class="navRow">
@@ -163,10 +174,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/><path d="M7.5 14h3M7.5 17.5h7"/></svg>
         <p>My week</p>
       </button>
-      <button class="navItem" data-goto="avail">
-        <span class="navBadge" data-role="availBadge" hidden></span>
+      <button class="navItem" data-goto="work">
+        <span class="navBadge" data-role="workBadge" hidden></span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5.5 5.5h13L21 13v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4z"/></svg>
-        <p>Available</p>
+        <p>Work</p>
       </button>
       <div class="navCenter">
         <button class="plusBtn" data-goto="add" aria-label="Add work">
@@ -178,10 +189,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5"/><path d="M17 9.5a2.8 2.8 0 1 0 0-5.5"/><path d="M18 14.8c2 .6 3.5 2 3.5 4"/></svg>
         <p>Clients</p>
       </button>
-      <button class="navItem soon" data-soon="Team">
-        <span class="soonTag">SOON</span>
+      <button class="navItem" data-goto="profile">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
-        <p>Team</p>
+        <p>Profile</p>
       </button>
     </div>
   </nav>
@@ -215,17 +225,11 @@
       <i class="filled" data-role="barAhead"></i>
       <i class="over" data-role="barOver"></i>
     </div>
-    <div class="capLegend">
-      <span><i class="dot dotDone"></i> done <span data-role="legendDone">0u</span></span>
-      <span><i class="dot dotAhead"></i> ahead <span data-role="legendAhead">0u</span></span>
-      <span data-role="legendFreeWrap"><i class="dot dotFree"></i> free <span data-role="legendFree">0u</span></span>
-      <span data-role="legendOverWrap" hidden><i class="dot dotOver"></i> over <span data-role="legendOver">0u</span></span>
-    </div>
   </div>
 </template>
 
 <template id="tpl-nudge">
-  <button class="nudge" data-goto="avail">
+  <button class="nudge" data-goto="work">
     <span class="nIcon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 3h.01"/><path d="M10.3 4.3 2.6 18A1.7 1.7 0 0 0 4.1 20.5h15.8A1.7 1.7 0 0 0 21.4 18L13.7 4.3a1.7 1.7 0 0 0-3 0z"/></svg>
     </span>
@@ -243,26 +247,26 @@
   <div class="sectionLabel"><span data-role="label"></span><span class="plain" data-role="aside"></span></div>
 </template>
 
+<!-- A day on My week. Its header sticks to the top of the list while you
+     scroll that day's cards, then the next day pushes it away. -->
 <template id="tpl-day">
   <div class="day">
     <div class="dayHead">
       <div class="dayNum" data-role="num"></div>
       <div class="dayName" data-role="name"></div>
       <div class="dayLoad" data-role="load"></div>
-      <!-- Put something on this particular day: opens the waiting work,
-           already aimed at this date. -->
       <button class="dayAdd" data-act="addToDay" aria-label="Add work to this day">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       </button>
     </div>
-    <div data-role="jobs"></div>
+    <div class="dayJobs" data-role="jobs"></div>
   </div>
 </template>
 
 <template id="tpl-weekJob">
   <button class="job">
+    <span class="rail" data-role="rail"></span>
     <span class="time"><b data-role="start"></b><small data-role="end"></small></span>
-    <span class="rail"></span>
     <span class="meat">
       <span class="jobTitle" data-role="title"></span>
       <span class="sub">
@@ -285,13 +289,12 @@
   <button class="emptyDay" data-act="addToDay">Nothing planned — tap to pick something</button>
 </template>
 
-<template id="tpl-availCard">
+<template id="tpl-workCard">
   <div class="wcard">
-    <span class="rail"></span>
+    <span class="rail" data-role="rail"></span>
     <div class="meat">
       <button class="titleRow" data-act="open">
         <span class="wTitle" data-role="title"></span>
-        <span class="prio" data-role="prio"></span>
       </button>
       <p class="sub">
         <span class="subBit" data-role="clientWrap">
@@ -326,104 +329,14 @@
   </button>
 </template>
 
-<!-- The archive entry at the top of the Clients page: everything finished,
-     across every client. -->
-<template id="tpl-prevWork">
-  <button class="prevWork" data-act="openArchive">
-    <span class="prevIcon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5h18M5.5 7.5v11a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-11"/><path d="M9 7.5V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2.5"/><path d="M9.5 13.5l1.8 1.8 3.4-3.4"/></svg>
-    </span>
-    <span class="prevText">
-      <b>Previous work</b>
-      <small data-role="prevSub">—</small>
-    </span>
-    <svg class="prevChev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-  </button>
-</template>
-
-<template id="tpl-clientCard">
-  <button class="clientCard">
-    <span class="avatar" data-role="initials"></span>
-    <span class="clientCardText">
-      <b data-role="name"></b>
-      <small data-role="where" hidden></small>
-      <span class="clientCardStats" data-role="stats"></span>
-    </span>
-    <span class="clientCardOpen" data-role="openCount" hidden></span>
-    <svg class="prevChev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-  </button>
-</template>
-
-<template id="tpl-addClient">
-  <button class="clientEmpty" data-act="newClientOnPage">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-    Add a client
-  </button>
-</template>
-
-<!-- One job as a compact line, used inside a client's sheet and the archive. -->
-<template id="tpl-jobLine">
-  <button class="jobLine">
-    <span class="jobLineMain">
-      <span class="jobLineTitle" data-role="title"></span>
-      <span class="jobLineSub" data-role="sub"></span>
-    </span>
-    <span class="jobLineAside" data-role="aside"></span>
-  </button>
-</template>
-
-<template id="tpl-clientDetail">
-  <div class="clientDetail">
-    <div class="clientStatRow">
-      <span class="clientStat"><b data-role="statDone">0</b><small>done</small></span>
-      <span class="clientStat"><b data-role="statHours">0u</b><small>worked</small></span>
-      <span class="clientStat"><b data-role="statOpen">0</b><small>open</small></span>
-    </div>
-    <p class="clientAddress" data-role="address" hidden></p>
-
-    <button class="btn primary" data-act="addForClient">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      New job for this client
-    </button>
-
-    <div data-role="lists"></div>
-
-    <button class="detailsToggle" data-act="toggleClientEdit">
-      <span data-role="editLabel">Change name or address</span>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-    </button>
-    <div data-role="editWrap" hidden>
-      <div class="field">
-        <p class="lbl">Name <span class="req">*</span></p>
-        <input class="inp" data-role="editName" autocomplete="off">
-        <p class="errNote" data-role="nameErr" hidden>A client needs a name.</p>
-      </div>
-      <div class="field">
-        <p class="lbl">Address <span class="opt">optional</span></p>
-        <input class="inp" data-role="editWhere" placeholder="Street, number, city" autocomplete="off">
-      </div>
-      <div class="actions">
-        <button class="btn primary" data-act="saveClient">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-          Save client
-        </button>
-      </div>
-    </div>
-  </div>
-</template>
-
-<template id="tpl-archiveSheet">
-  <div class="archiveSheet">
-    <div class="searchWrap bare">
-      <svg class="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input class="searchInp" data-role="search" type="search" placeholder="Search finished work…" autocomplete="off">
-    </div>
-    <div data-role="list"></div>
-  </div>
-</template>
-
 <template id="tpl-chip">
   <span class="chip"><span data-role="text"></span></span>
+</template>
+
+<!-- A chip that carries its own colour: a status, a priority or a custom tag.
+     JS sets --tone as a CSS variable, so no hex ever lands in the markup. -->
+<template id="tpl-tagChip">
+  <span class="tagChip"><span data-role="text"></span></span>
 </template>
 
 <template id="tpl-emptyState">
@@ -444,6 +357,20 @@
     </div>
 
     <div class="field">
+      <p class="lbl">Status</p>
+      <button class="pickerRow" data-act="pickStatus">
+        <span class="tagChip" data-role="statusChip"><span data-role="statusText"></span></span>
+        <span class="pickerHint" data-role="statusHint"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+
+    <div class="field">
+      <p class="lbl">Tags <span class="opt">optional</span></p>
+      <div class="tagRow" data-role="tagRow"></div>
+    </div>
+
+    <div class="field">
       <p class="lbl">Client <span class="opt">optional</span></p>
       <button class="clientPick" data-act="pickClient" data-role="clientPicked" hidden>
         <span class="avatar" data-role="clientInitials"></span>
@@ -460,16 +387,16 @@
     </div>
 
     <div class="field">
-      <p class="lbl">Location <span class="opt">optional</span></p>
+      <p class="lbl">Where <span class="opt">optional</span></p>
       <input class="inp" data-role="location" placeholder="Street, number, city" autocomplete="off">
       <p class="inpNote" data-role="locNote" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        Filled in from the client — change it for a one-off address
+        Taken from the client — change it for a one-off address
       </p>
     </div>
 
     <div class="field">
-      <p class="lbl">Estimated time <span class="opt">optional</span></p>
+      <p class="lbl">How long will it take <span class="opt">optional</span></p>
       <div class="quick" data-role="estChips">
         <button class="qchip" data-min="30">30m</button>
         <button class="qchip" data-min="60">1u</button>
@@ -487,13 +414,13 @@
     </div>
 
     <div class="field">
-      <p class="lbl">Deadline <span class="opt">optional</span></p>
+      <p class="lbl">Finish before <span class="opt">optional</span></p>
       <div class="quick" data-role="dlChips">
         <button class="qchip" data-dl="today">Today</button>
         <button class="qchip" data-dl="tomorrow">Tomorrow</button>
         <button class="qchip" data-dl="week">This week</button>
         <button class="qchip" data-dl="pick">Pick a date</button>
-        <button class="qchip on" data-dl="none">None</button>
+        <button class="qchip on" data-dl="none">No rush</button>
       </div>
       <div class="customRow" data-role="dlCustom" hidden>
         <input class="inp" data-role="dlDate" type="date">
@@ -501,7 +428,7 @@
     </div>
 
     <div class="field">
-      <p class="lbl">Priority</p>
+      <p class="lbl">How urgent</p>
       <div class="seg" data-role="prioSeg">
         <button data-p="low">Low</button>
         <button data-p="normal" class="on">Normal</button>
@@ -576,7 +503,7 @@
     <div class="actions">
       <button class="btn primary" data-act="confirmPlan">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        <span data-role="planBtnLabel">Plan it</span>
+        <span data-role="planBtnLabel">Put it in the week</span>
       </button>
     </div>
   </div>
@@ -599,9 +526,6 @@
 
 <template id="tpl-jobSheet">
   <div class="jobSheet">
-    <!-- How this job is scheduled comes first and owns its own block: it is the
-         thing people open a planned job to change, and burying it under the
-         details form made it look like the schedule was fixed. -->
     <div class="schedBlock" data-role="sched">
       <p class="schedLabel" data-role="schedLabel">In the week</p>
       <p class="schedWhen" data-role="schedWhen">—</p>
@@ -637,17 +561,107 @@
   </div>
 </template>
 
+<!-- pick one of the five statuses -->
+<template id="tpl-statusSheet">
+  <div class="statusSheet" data-role="list"></div>
+</template>
+
+<template id="tpl-statusRow">
+  <button class="statusRow">
+    <span class="statusDot" data-role="dot"></span>
+    <span class="statusText">
+      <b data-role="label"></b>
+      <small data-role="hint"></small>
+    </span>
+    <span class="menuMark" data-role="mark" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </span>
+  </button>
+</template>
+
+<!-- tags: tick the ones that apply, or make a new one -->
+<template id="tpl-tagSheet">
+  <div class="tagSheet">
+    <div class="tagPickList" data-role="list"></div>
+
+    <button class="detailsToggle" data-act="toggleNewTag">
+      <span data-role="newLabel">Make a new tag</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+
+    <div data-role="newWrap" hidden>
+      <div class="field">
+        <p class="lbl">Name <span class="req">*</span></p>
+        <input class="inp" data-role="newName" placeholder="e.g. Needs parts" autocomplete="off">
+        <p class="errNote" data-role="newErr" hidden>Give the tag a name.</p>
+      </div>
+      <div class="field">
+        <p class="lbl">Colour</p>
+        <div class="swatchRow" data-role="swatches"></div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" data-act="createTag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Add this tag
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-tagPickRow">
+  <div class="tagPickRow">
+    <button class="tagPickMain" data-act="toggleTag">
+      <span class="statusDot" data-role="dot"></span>
+      <span class="tagPickName" data-role="name"></span>
+      <span class="menuMark" data-role="mark" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      </span>
+    </button>
+    <button class="tagPickDrop" data-act="deleteTag" aria-label="Delete this tag">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h18M8 5.5V3.5h8v2M6 5.5l1 14a2 2 0 0 0 2 1.9h6a2 2 0 0 0 2-1.9l1-14"/></svg>
+    </button>
+  </div>
+</template>
+
+<template id="tpl-swatch">
+  <button class="swatch" data-act="pickColour"><span data-role="fill"></span></button>
+</template>
+
 <template id="tpl-clientSheet">
   <div class="clientSheet">
     <div class="searchWrap bare">
       <svg class="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input class="searchInp" data-role="search" type="search" placeholder="Search or type a new name…" autocomplete="off">
+      <input class="searchInp" data-role="search" type="search" placeholder="Search, or type a new name…" autocomplete="off">
     </div>
     <button class="newClientRow" data-act="newClient" hidden>
       <span class="avatar plus">+</span>
-      <span class="clientText"><b>Add “<span data-role="newName"></span>”</b><small>as a new client</small></span>
+      <span class="clientText"><b>Add “<span data-role="newName"></span>”</b><small>fill in their details next</small></span>
     </button>
     <div class="clientList" data-role="list"></div>
+  </div>
+</template>
+
+<!-- Adding a client asks for the address straight away, rather than quietly
+     creating a name with nothing attached to it. -->
+<template id="tpl-newClientSheet">
+  <div class="newClientSheet">
+    <div class="field">
+      <p class="lbl">Name <span class="req">*</span></p>
+      <input class="inp big" data-role="name" autocomplete="off">
+      <p class="errNote" data-role="nameErr" hidden>A client needs a name.</p>
+    </div>
+    <div class="field">
+      <p class="lbl">Address <span class="opt">optional</span></p>
+      <input class="inp" data-role="where" placeholder="Street, number, city" autocomplete="off">
+      <p class="inpNote plain">Jobs for this client start with this address filled in.</p>
+    </div>
+    <div class="actions">
+      <button class="btn primary" data-act="saveNewClient">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        Add client
+      </button>
+    </div>
   </div>
 </template>
 
@@ -661,6 +675,118 @@
   </button>
 </template>
 
+<template id="tpl-prevWork">
+  <button class="prevWork" data-act="openArchive">
+    <span class="prevIcon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5h18M5.5 7.5v11a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-11"/><path d="M9 7.5V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2.5"/><path d="M9.5 13.5l1.8 1.8 3.4-3.4"/></svg>
+    </span>
+    <span class="prevText">
+      <b>Previous work</b>
+      <small data-role="prevSub">—</small>
+    </span>
+    <svg class="prevChev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+</template>
+
+<template id="tpl-clientCard">
+  <button class="clientCard">
+    <span class="avatar" data-role="initials"></span>
+    <span class="clientCardText">
+      <b data-role="name"></b>
+      <small data-role="where" hidden></small>
+      <span class="clientCardStats" data-role="stats"></span>
+    </span>
+    <span class="clientCardOpen" data-role="openCount" hidden></span>
+    <svg class="prevChev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+</template>
+
+<template id="tpl-addClient">
+  <button class="clientEmpty" data-act="openPicker">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Find or add a client
+  </button>
+</template>
+
+<template id="tpl-jobLine">
+  <button class="jobLine">
+    <span class="jobLineMain">
+      <span class="jobLineTitle" data-role="title"></span>
+      <span class="jobLineSub" data-role="sub"></span>
+    </span>
+    <span class="jobLineAside" data-role="aside"></span>
+  </button>
+</template>
+
+<template id="tpl-clientDetail">
+  <div class="clientDetail">
+    <div class="clientStatRow">
+      <span class="clientStat"><b data-role="statDone">0</b><small>done</small></span>
+      <span class="clientStat"><b data-role="statHours">0u</b><small>worked</small></span>
+      <span class="clientStat"><b data-role="statOpen">0</b><small>open</small></span>
+    </div>
+    <p class="clientAddress" data-role="address" hidden></p>
+
+    <button class="btn primary" data-act="addForClient">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      New job for this client
+    </button>
+
+    <div data-role="lists"></div>
+
+    <button class="detailsToggle" data-act="toggleClientEdit">
+      <span data-role="editLabel">Change name or address</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div data-role="editWrap" hidden>
+      <div class="field">
+        <p class="lbl">Name <span class="req">*</span></p>
+        <input class="inp" data-role="editName" autocomplete="off">
+        <p class="errNote" data-role="nameErr" hidden>A client needs a name.</p>
+      </div>
+      <div class="field">
+        <p class="lbl">Address <span class="opt">optional</span></p>
+        <input class="inp" data-role="editWhere" placeholder="Street, number, city" autocomplete="off">
+      </div>
+      <div class="actions">
+        <button class="btn primary" data-act="saveClient">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Save client
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-archiveSheet">
+  <div class="archiveSheet">
+    <div class="searchWrap bare">
+      <svg class="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input class="searchInp" data-role="search" type="search" placeholder="Search finished work…" autocomplete="off">
+    </div>
+    <div data-role="list"></div>
+  </div>
+</template>
+
+<!-- profile -->
+<template id="tpl-profileCard">
+  <div class="profileCard">
+    <span class="profileAvatar">MB</span>
+    <span class="profileText">
+      <b data-role="name">MB app</b>
+      <small data-role="sub">demo — everything is stored on this device</small>
+    </span>
+  </div>
+</template>
+
+<template id="tpl-statRow">
+  <div class="statRow">
+    <span class="clientStat"><b data-role="a">0</b><small data-role="aLbl"></small></span>
+    <span class="clientStat"><b data-role="b">0</b><small data-role="bLbl"></small></span>
+    <span class="clientStat"><b data-role="c">0</b><small data-role="cLbl"></small></span>
+  </div>
+</template>
+
 <template id="tpl-menuSheet">
   <div class="menuSheet" data-role="list"></div>
 </template>
@@ -668,7 +794,10 @@
 <template id="tpl-menuRow">
   <button class="menuRow">
     <span class="menuText"><b data-role="label"></b><small data-role="sub"></small></span>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    <span class="menuMark" data-role="mark" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </span>
+    <svg class="menuChev" data-role="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
   </button>
 </template>
 
@@ -692,11 +821,29 @@
   </div>
 </template>
 
+<template id="tpl-exportSheet">
+  <div class="exportSheet">
+    <p class="exportIntro">Everything this app has stored on your device, as one file. Send it over and it can be loaded onto a real account later.</p>
+    <div data-role="stats"></div>
+    <div class="actions">
+      <button class="btn primary" data-act="downloadExport">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5"/><path d="M4 20h16"/></svg>
+        Download the file
+      </button>
+      <button class="btn quiet" data-act="copyExport">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 5.5H6A2.5 2.5 0 0 0 3.5 8v9.5"/></svg>
+        Copy it instead
+      </button>
+    </div>
+    <p class="exportName" data-role="filename"></p>
+  </div>
+</template>
+
 <template id="tpl-confirmSheet">
   <div class="confirmSheet">
     <p data-role="text"></p>
     <div class="actions">
-      <button class="btn danger" data-act="confirmYes" data-role="yes">Yes, do it</button>
+      <button class="btn danger strong" data-act="confirmYes" data-role="yes">Yes, do it</button>
       <button class="btn quiet" data-act="closeSheet">Cancel</button>
     </div>
   </div>
@@ -704,12 +851,14 @@
 
 <script src="src/util.js"></script>
 <script src="src/store.js"></script>
+<script src="src/chips.js"></script>
 <script src="src/sheets.js"></script>
 <script src="src/jobform.js"></script>
 <script src="src/pages/week.js"></script>
-<script src="src/pages/available.js"></script>
+<script src="src/pages/work.js"></script>
 <script src="src/pages/add.js"></script>
 <script src="src/pages/clients.js"></script>
+<script src="src/pages/profile.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

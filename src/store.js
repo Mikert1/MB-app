@@ -17,10 +17,51 @@
 
     /* The shape we persist. `version` lets a later build migrate instead
        of throwing a tester's data away. */
-    const EMPTY = { version: 1, jobs: [], clients: [], settings: { weekHours: 40, me: 'You' } };
+    const EMPTY = { version: 2, jobs: [], clients: [], tags: [], settings: { weekHours: 40, me: 'You' } };
+
+    /**
+     * Where a job stands with the client. This is the thing that colours a
+     * card, so the order here is the order the filters appear in and the
+     * colours are the only ones a card ever wears.
+     *
+     * `tone` names a CSS variable in style.css — never a hex literal.
+     */
+    const STATUSES = [
+        { id: 'available', label: 'Available', tone: '--status-available',
+          hint: 'In the pile, nothing agreed yet' },
+        { id: 'quote', label: 'Quote', tone: '--status-quote',
+          hint: 'A price has gone out, waiting to hear back' },
+        { id: 'movable', label: 'Agreed, can move',  tone: '--status-movable',
+          hint: 'Talked through, but the day can still shift' },
+        { id: 'agreed', label: 'Agreed', tone: '--status-agreed',
+          hint: 'Fixed with the client — do not move it' },
+        { id: 'done', label: 'Done', tone: '--status-done',
+          hint: 'Finished' }
+    ];
+
+    /** The palette a custom tag can be given. */
+    const TAG_COLOURS = ['red', 'orange', 'amber', 'green', 'teal', 'violet', 'pink', 'grey'];
+
 
     let data = null;
     const listeners = [];
+
+    const Store = W.store = {};
+
+    Store.STATUSES = STATUSES;
+    Store.TAG_COLOURS = TAG_COLOURS;
+
+    Store.status = function (id) {
+        return STATUSES.find(st => st.id === id) || STATUSES[0];
+    };
+
+    /** Priority is just a coloured tag on the card now, never a card tint. */
+    Store.priorityTone = function (priority) {
+        if (priority === 'urgent') return '--prio-urgent';
+        if (priority === 'high') return '--prio-high';
+        if (priority === 'low') return '--prio-low';
+        return null;
+    };
 
     /* ---------------- persistence ---------------- */
 
@@ -43,14 +84,33 @@
         }
     }
 
+    /**
+     * Brings older stored data up to the current shape instead of discarding
+     * it — there is deliberately no reset button, so a tester who started on
+     * v1 has to keep everything they entered.
+     */
     function migrate(parsed) {
-        // Only v1 exists so far. Later versions bump and patch here rather
-        // than discarding, so an early tester never loses what they entered.
         const out = Object.assign({}, EMPTY, parsed || {});
         out.settings = Object.assign({}, EMPTY.settings, parsed && parsed.settings);
         out.jobs = Array.isArray(out.jobs) ? out.jobs : [];
         out.clients = Array.isArray(out.clients) ? out.clients : [];
-        out.version = 1;
+        out.tags = Array.isArray(out.tags) ? out.tags : [];
+
+        out.jobs.forEach(job => {
+            // v1 had no status: anything already ticked off is done, the rest
+            // goes back in the pile as available.
+            if (!job.status || !STATUSES.some(st => st.id === job.status)) {
+                job.status = job.doneAt ? 'done' : 'available';
+            }
+            if (!Array.isArray(job.tagIds)) job.tagIds = [];
+        });
+
+        // a tag that lost its colour still has to render
+        out.tags.forEach(tag => {
+            if (TAG_COLOURS.indexOf(tag.color) < 0) tag.color = 'grey';
+        });
+
+        out.version = 2;
         return out;
     }
 
@@ -58,8 +118,6 @@
         writeRaw(JSON.stringify(data));
         listeners.forEach(fn => fn());
     }
-
-    const Store = W.store = {};
 
     /** True when this browser lets us keep anything at all. */
     Store.canPersist = function () {
@@ -87,7 +145,14 @@
             return { fresh: true };
         }
         try {
-            data = migrate(JSON.parse(raw));
+            const parsed = JSON.parse(raw);
+            const wasVersion = parsed && parsed.version;
+            data = migrate(parsed);
+            // Write the upgraded shape straight back. Without this the stored
+            // copy stays on the old version until the user happens to change
+            // something — and an export taken before that would hand over
+            // pre-migration data.
+            if (wasVersion !== data.version) save();
         } catch (e) {
             console.warn('MB app: stored data was unreadable, starting empty', e);
             data = migrate(null);
@@ -153,9 +218,60 @@
         return data.jobs.filter(j => j.clientId === clientId).length;
     };
 
+    /* ---------------- tags ----------------
+       Free-form labels the company invents for itself. They carry a colour,
+       and a job can wear any number of them. */
+
+    Store.tags = function () {
+        return data.tags.slice();
+    };
+
+    Store.tag = function (id) {
+        return data.tags.find(t => t.id === id) || null;
+    };
+
+    Store.tagsOf = function (job) {
+        return (job.tagIds || []).map(Store.tag).filter(Boolean);
+    };
+
+    Store.addTag = function (fields) {
+        const name = String(fields.name || '').trim();
+        if (!name) return null;
+        const existing = data.tags.find(t => t.name.toLowerCase() === name.toLowerCase());
+        if (existing) return existing;
+
+        const tag = {
+            id: U.id(),
+            name: name,
+            color: TAG_COLOURS.indexOf(fields.color) >= 0 ? fields.color : 'grey'
+        };
+        data.tags.push(tag);
+        save();
+        return tag;
+    };
+
+    /** Deleting a tag also takes it off every job wearing it. */
+    Store.deleteTag = function (id) {
+        const i = data.tags.findIndex(t => t.id === id);
+        if (i < 0) return false;
+        data.tags.splice(i, 1);
+        data.jobs.forEach(job => {
+            if (!job.tagIds) return;
+            const at = job.tagIds.indexOf(id);
+            if (at >= 0) job.tagIds.splice(at, 1);
+        });
+        save();
+        return true;
+    };
+
+    Store.jobCountForTag = function (id) {
+        return data.jobs.filter(j => (j.tagIds || []).indexOf(id) >= 0).length;
+    };
+
     /* ---------------- jobs ---------------- */
 
     function normalise(fields) {
+        const known = (fields.tagIds || []).filter(id => data.tags.some(t => t.id === id));
         return {
             title: String(fields.title || '').trim(),
             clientId: fields.clientId || null,
@@ -163,6 +279,8 @@
             estimateMin: fields.estimateMin == null ? null : Math.max(0, Math.round(fields.estimateMin)),
             deadline: fields.deadline || null,
             priority: ['low', 'normal', 'high', 'urgent'].indexOf(fields.priority) >= 0 ? fields.priority : 'normal',
+            status: STATUSES.some(st => st.id === fields.status) ? fields.status : 'available',
+            tagIds: known,
             notes: String(fields.notes || '').trim()
         };
     }
@@ -181,6 +299,8 @@
             planned: null,
             doneAt: null
         });
+        // saved straight as done (rare, but allowed) still needs its stamp
+        if (job.status === 'done') job.doneAt = new Date().toISOString();
         data.jobs.push(job);
         save();
         return job;
@@ -190,6 +310,22 @@
         const job = Store.job(id);
         if (!job) return null;
         Object.assign(job, normalise(fields));
+        syncDone(job);
+        save();
+        return job;
+    };
+
+    /** The done status and the doneAt stamp are two views of one fact. */
+    function syncDone(job) {
+        if (job.status === 'done' && !job.doneAt) job.doneAt = new Date().toISOString();
+        if (job.status !== 'done' && job.doneAt) job.doneAt = null;
+    }
+
+    Store.setStatus = function (id, status) {
+        const job = Store.job(id);
+        if (!job || !STATUSES.some(st => st.id === status)) return null;
+        job.status = status;
+        syncDone(job);
         save();
         return job;
     };
@@ -231,6 +367,7 @@
         if (!job) return null;
         job.planned = null;
         job.doneAt = null;
+        if (job.status === 'done') job.status = 'available';
         save();
         return job;
     };
@@ -239,6 +376,9 @@
         const job = Store.job(id);
         if (!job) return null;
         job.doneAt = done ? new Date().toISOString() : null;
+        // ticking a job off is also a status change; unticking sends it back to
+        // whatever a planned job normally is rather than to the bottom of the pile
+        job.status = done ? 'done' : (job.planned ? 'agreed' : 'available');
         save();
         return job;
     };
@@ -307,6 +447,18 @@
         return { waiting: waiting, planned: planned, done: done, minutes: minutes, total: mine.length };
     };
 
+    /** How many jobs sit in each status, for the Work page's filter chips. */
+    Store.statusCounts = function () {
+        const counts = {};
+        STATUSES.forEach(st => { counts[st.id] = 0; });
+        data.jobs.forEach(job => {
+            if (counts[job.status] == null) counts[job.status] = 0;
+            counts[job.status]++;
+        });
+        counts.all = data.jobs.length;
+        return counts;
+    };
+
     /** Everything finished, newest first — the "previous work" archive. */
     Store.doneJobs = function () {
         return data.jobs.filter(j => j.doneAt)
@@ -368,6 +520,79 @@
         };
     };
 
+    /* ---------------- dismissed hints ----------------
+       Kept under their own key, not in `data`. Someone who has clicked a tip
+       away has said "I know this now" — loading the example work or clearing
+       the app must not bring it back. */
+
+    const HINT_KEY = 'workium.hints.v1';
+
+    function hintList() {
+        try {
+            return (window.localStorage.getItem(HINT_KEY) || '').split(',').filter(Boolean);
+        } catch (e) {
+            return [];
+        }
+    }
+
+    Store.hintDismissed = function (name) {
+        return hintList().indexOf(name) >= 0;
+    };
+
+    Store.dismissHint = function (name) {
+        const list = hintList();
+        if (list.indexOf(name) >= 0) return;
+        list.push(name);
+        try {
+            window.localStorage.setItem(HINT_KEY, list.join(','));
+        } catch (e) {
+            console.warn('MB app: could not remember the dismissed hint', e);
+        }
+    };
+
+    /* ---------------- export ---------------- */
+
+    /**
+     * Everything the app has on this device, as one plain object. This is what
+     * a tester sends over so their work can be moved onto a real account once
+     * there is a backend — so it carries the raw stored values, not a tidied
+     * summary, plus enough context to know what produced it.
+     */
+    Store.exportAll = function () {
+        const keys = {};
+        try {
+            for (let i = 0; i < window.localStorage.length; i++) {
+                const key = window.localStorage.key(i);
+                if (key && key.indexOf('workium.') === 0) {
+                    keys[key] = window.localStorage.getItem(key);
+                }
+            }
+        } catch (e) {
+            console.warn('MB app: could not read localStorage for the export', e);
+        }
+
+        return {
+            app: 'MB app (demo)',
+            exportVersion: 1,
+            storeVersion: data.version,
+            exportedAt: new Date().toISOString(),
+            counts: {
+                jobs: data.jobs.length,
+                planned: data.jobs.filter(j => j.planned).length,
+                done: data.jobs.filter(j => j.doneAt).length,
+                clients: data.clients.length,
+                tags: data.tags.length
+            },
+            data: {
+                jobs: data.jobs,
+                clients: data.clients,
+                tags: data.tags,
+                settings: data.settings
+            },
+            rawLocalStorage: keys
+        };
+    };
+
     /* ---------------- demo data ---------------- */
 
     /**
@@ -410,10 +635,23 @@
                 job.planned = { date: planned[0], start: planned[1], durationMin: planned[2] };
                 if (done) job.doneAt = new Date(U.parseDate(planned[0]).getTime() + 17 * 3600000).toISOString();
             }
+            // A job's status has to match what the example actually shows:
+            // finished work reads "done", booked work reads as agreed unless
+            // the row asked for something looser.
+            if (done) job.status = 'done';
+            else if (planned) job.status = fields.status || 'agreed';
+            else job.status = fields.status || 'available';
+
             if (fields.createdAt) job.createdAt = fields.createdAt;
             if (fields.createdBy) job.createdBy = fields.createdBy;
             return job;
         }
+
+        /* A couple of tags the example company would plausibly have invented,
+           so the colours on the cards have something to show. */
+        const tagParts = Store.addTag({ name: 'Needs parts', color: 'violet' });
+        const tagInvoice = Store.addTag({ name: 'To invoice', color: 'teal' });
+        const tagRecurring = Store.addTag({ name: 'Contract', color: 'grey' });
 
         /* --- already planned, earlier in the week --- */
         make({
@@ -449,7 +687,8 @@
 
         make({
             title: 'Install 2 outdoor taps', clientId: c.groen.id,
-            estimateMin: 180, priority: 'normal', createdAt: hoursAgo(24 * 5)
+            estimateMin: 180, priority: 'normal', createdAt: hoursAgo(24 * 5),
+            status: 'movable'
         }, [day(d1), '13:30', 180]);
 
         make({
@@ -460,7 +699,8 @@
 
         make({
             title: 'Quote visit — full bathroom', clientId: c.devries.id,
-            estimateMin: 240, priority: 'normal', createdAt: hoursAgo(24 * 6)
+            estimateMin: 240, priority: 'normal', createdAt: hoursAgo(24 * 6),
+            status: 'movable'
         }, [day(d2), '13:00', 240]);
 
         /* --- finished work from earlier weeks, so the Clients page and the
@@ -482,11 +722,12 @@
             const date = U.addDaysIso(todayIso, row[0]);
             make({
                 title: row[2], clientId: c[row[1]].id, estimateMin: row[3],
-                priority: 'normal', createdAt: hoursAgo(-row[0] * 24 + 30)
+                priority: 'normal', createdAt: hoursAgo(-row[0] * 24 + 30),
+                tagIds: row[0] > -9 ? [tagInvoice.id] : []
             }, [date, row[4], row[3]], true);
         });
 
-        /* --- waiting in Available work --- */
+        /* --- waiting, in a spread of statuses --- */
         make({
             title: 'Water meter leaking in cellar', clientId: c.timmer.id,
             estimateMin: 120, priority: 'urgent', deadline: U.addDaysIso(todayIso, 1),
@@ -502,7 +743,8 @@
         make({
             title: 'Replace mixer tap, 3 rooms', clientId: c.centraal.id,
             estimateMin: 300, priority: 'high', deadline: U.addDaysIso(todayIso, 6),
-            createdAt: hoursAgo(24 * 6)
+            createdAt: hoursAgo(24 * 6), status: 'quote',
+            tagIds: [tagParts.id]
         });
 
         // The hurried one: a title, a client and nothing else.
@@ -514,7 +756,8 @@
 
         make({
             title: 'Yearly maintenance contract — 8 units', clientId: c.parkzicht.id,
-            estimateMin: 960, priority: 'normal', createdAt: hoursAgo(24 * 15)
+            estimateMin: 960, priority: 'normal', createdAt: hoursAgo(24 * 15),
+            status: 'quote', tagIds: [tagRecurring.id]
         });
 
         make({

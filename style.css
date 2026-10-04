@@ -57,6 +57,31 @@
     --shadow-sheet: 0 -18px 50px rgba(0, 0, 0, .6);
     --shadow-toast: 0 8px 24px rgba(0, 0, 0, .45);
 
+    /* ---- status colours ----
+       A card's colour comes from where the job stands with the client, so
+       these are the only tints a card ever wears. Priority is a tag now, and
+       lives in the --prio-* set below. */
+    --status-available: #8A949C;
+    --status-quote:     #9B7BFF;
+    --status-movable:   #FFBB00;
+    --status-agreed:    #5ECB7F;
+    --status-done:      #5A6168;
+
+    /* priority, worn only by its own chip */
+    --prio-urgent: #E5063C;
+    --prio-high:   #FF9500;
+    --prio-low:    #6B737A;
+
+    /* the palette a custom tag can be given */
+    --tag-red:    #E5063C;
+    --tag-orange: #FF7A2F;
+    --tag-amber:  #FFBB00;
+    --tag-green:  #5ECB7F;
+    --tag-teal:   #22B8B0;
+    --tag-violet: #9B7BFF;
+    --tag-pink:   #FF6FA5;
+    --tag-grey:   #8A949C;
+
     /* the canvas the app column sits on, on a wide screen */
     --board-bg: #0a0d0e;
 
@@ -69,6 +94,26 @@
 * { box-sizing: border-box; }
 
 html, body { margin: 0; height: 100%; }
+
+/* The document itself never scrolls: each page scrolls its own .body, which is
+   what makes "jump to today" and the sticky day headers work at all. Without
+   this the app column grows to its content and the window becomes the
+   scroller, so setting a page's scrollTop does nothing. */
+body { overflow: hidden; }
+
+/* On a phone the toolbars come and go, and 100% resolves to the tallest
+   viewport — which would push the navbar under them. dvh tracks the real one. */
+@supports (height: 100dvh) {
+    html, body { height: 100dvh; }
+}
+
+html {
+    /* no pinch-zoom, no double-tap zoom, and no silent font inflation when a
+       phone is held in landscape */
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
 
 body {
     background-color: var(--board-bg);
@@ -106,10 +151,13 @@ button {
     flex-direction: column;
     width: 100%;
     max-width: 480px;
-    min-height: 100vh;
-    min-height: 100dvh;
+    /* An exact height, not a minimum: a flex column only gives its children a
+       bounded height if it has one itself, and .body needs that to scroll. */
+    height: 100%;
+    max-height: 100%;
     margin: 0 auto;
     background-color: var(--bg-app);
+    overflow: hidden;
 }
 
 @media (min-width: 540px) {
@@ -124,7 +172,10 @@ button {
     display: flex;
 }
 
-.page { display: none; flex: 1; min-width: 0; flex-direction: column; }
+/* The fixed navbar covers the foot of every page, so each page's own scroller
+   keeps that much clear at the bottom (see .body's padding). */
+
+.page { display: none; flex: 1 1 auto; min-width: 0; min-height: 0; flex-direction: column; }
 .page.on { display: flex; }
 
 /* ---------- page header ---------- */
@@ -184,7 +235,9 @@ button {
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 4px 18px calc(var(--nav-h) + 30px + var(--safe-bottom));
+    /* no top padding: a sticky header has to reach the very top edge, or
+       cards show in the strip above it as they scroll past */
+    padding: 0 18px calc(var(--nav-h) + 30px + var(--safe-bottom));
     scrollbar-width: none;
 }
 .body::-webkit-scrollbar { display: none; }
@@ -215,6 +268,42 @@ button {
 .chip.warn { background-color: var(--warning-tint); color: var(--warning); }
 .chip.ok { background-color: var(--success-tint); color: var(--success); }
 .chip.ghost { background-color: transparent; color: var(--text-faint); box-shadow: inset 0 0 0 1px var(--edge); }
+
+/* A chip that carries its own colour. --tone is set from JS to one of the
+   palette variables; colour-mix keeps the fill a tint of it so the text stays
+   readable without a second variable per colour. */
+.tagChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border-radius: 20px;
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--tone, var(--text-secondary));
+    background-color: color-mix(in srgb, var(--tone, #888) 16%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone, #888) 34%, transparent);
+}
+/* Browsers without colour-mix still get a readable chip. */
+@supports not (background-color: color-mix(in srgb, red 10%, transparent)) {
+    .tagChip { background-color: var(--bg-chip); }
+}
+.tagChip.solid {
+    color: var(--text-bright);
+    background-color: var(--tone);
+    box-shadow: none;
+}
+
+.statusDot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    background-color: var(--tone, var(--bg-chip));
+}
 
 .sectionLabel {
     display: flex;
@@ -308,8 +397,40 @@ button {
 .nudge .chev { margin-left: auto; color: var(--accent-soft); display: flex; flex: 0 0 auto; }
 .nudge .chev svg { width: 16px; height: 16px; }
 
-.day { margin-top: 18px; }
-.dayHead { display: flex; align-items: center; gap: 9px; margin: 0 2px 8px; }
+/* The gap between two days has to sit INSIDE the day above. A sticky header
+   can only travel to the bottom of its own content box, so padding here would
+   shrink that box and make the header let go early — the gap goes on the last
+   card instead, and flow-root keeps that margin inside the day. */
+.day { padding-bottom: 0; }
+:not(.day) + .day { margin-top: 10px; }
+/* The gap between two days belongs to the day above, not the one below: a
+   sticky header only sticks inside its own box, so with the gap on the next
+   day the header let go just before the next one arrived. */
+
+/* The header rides along with its own cards and is pushed off by the next
+   day, which is how Planium's lists read. --bg-app behind it so the cards
+   scroll underneath rather than through it. */
+.dayHead {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    /* Full bleed: the negative side margins cancel the list's padding so the
+       header covers the cards edge to edge as they pass under it, and its own
+       padding puts the text back in line with them. */
+    margin: 0 -18px 8px;
+    padding: 10px 18px 8px;
+    background-color: var(--bg-app);
+}
+.dayJobs { position: relative; z-index: 1; display: flow-root; }
+.dayJobs > :last-child { margin-bottom: 18px; }
+
+/* Lets the last day be scrolled up to the top of the list, so arriving on
+   today always puts today under the header rather than wherever the content
+   happens to end. Sized from JS to the height of the final day. */
+.weekTail { flex: 0 0 auto; }
 .dayNum {
     width: 30px;
     height: 30px;
@@ -357,13 +478,19 @@ button {
     background-color: var(--bg-card);
 }
 .job:active { transform: scale(.99); }
-.job .time { flex: 0 0 54px; font-size: .78rem; line-height: 1.4; }
+.job .time { flex: 0 0 48px; font-size: .78rem; line-height: 1.4; }
+/* A job with no clock time shows a dash here and says "any time" in a chip,
+   rather than wrapping the words into two stacked lines. */
+.job.noTime .time b { color: var(--text-faint); font-weight: 700; }
 .job .time b { display: block; font-weight: 800; color: var(--text-bright); }
 .job .time small { display: block; font-weight: 600; color: var(--text-faint); font-size: .72rem; }
-.job .rail { flex: 0 0 3px; border-radius: 3px; background-color: var(--bg-chip); }
-.job.p-urgent .rail { background-color: var(--accent); }
-.job.p-high .rail { background-color: var(--warning); }
-.job.isDone .rail { background-color: var(--success); }
+/* One rail, coloured by status — set from JS as --tone. */
+.job .rail,
+.wcard .rail {
+    flex: 0 0 3px;
+    border-radius: 3px;
+    background-color: var(--tone, var(--bg-chip));
+}
 .job .meat { flex: 1; min-width: 0; }
 .job .jobTitle {
     display: block;
@@ -534,10 +661,7 @@ button {
     border-radius: 14px;
     background-color: var(--bg-card);
 }
-.wcard .rail { flex: 0 0 3px; border-radius: 3px; background-color: var(--bg-chip); }
-.wcard.p-urgent { background-color: var(--bg-selected); }
-.wcard.p-urgent .rail { background-color: var(--accent); }
-.wcard.p-high .rail { background-color: var(--warning); }
+
 .wcard .meat { flex: 1; min-width: 0; }
 .wcard .titleRow { display: flex; align-items: flex-start; gap: 8px; width: 100%; }
 .wcard .wTitle {
@@ -899,11 +1023,17 @@ textarea.inp { resize: none; line-height: 1.5; }
 /* ============================================================
    Bottom nav — Planium's five slots with the raised centre
    ============================================================ */
+/* Pinned to the viewport rather than sitting in the page flow, so it never
+   travels with a scroll or a keyboard. Centred on a wide screen to stay under
+   the app column. */
 .nav {
-    position: sticky;
+    position: fixed;
     bottom: 0;
-    z-index: 9;
-    flex: 0 0 auto;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    z-index: 20;
     height: calc(var(--nav-h) + var(--safe-bottom));
     padding-bottom: var(--safe-bottom);
     background-color: var(--bg-deep);
@@ -1272,4 +1402,195 @@ textarea.inp { resize: none; line-height: 1.5; }
 
 @media (prefers-reduced-motion: reduce) {
     * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/* ============================================================
+   Added with the status / tags / profile pass
+   ============================================================ */
+
+/* --- the Add page's pinned save buttons --- */
+.body.hasPinned { padding-bottom: 18px; }
+.pinnedActions {
+    position: fixed;
+    bottom: calc(var(--nav-h) + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 18px 14px;
+    background-color: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--divider);
+}
+.pinnedActions .btn { padding: 13px; font-size: .88rem; }
+/* The form scrolls behind the pinned bar, so it needs room to clear it. */
+.page[data-page="add"] .body { padding-bottom: 160px; }
+
+/* --- a row that opens a picker (status) --- */
+.pickerRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid var(--edge);
+    border-radius: 12px;
+    background-color: var(--bg-card);
+}
+.pickerRow:hover { border-color: var(--accent-line); }
+.pickerRow svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--text-faint); margin-left: auto; }
+.pickerHint {
+    min-width: 0;
+    font-size: .76rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- tags on the form --- */
+.tagRow { display: flex; flex-wrap: wrap; gap: 6px; }
+.tagRow .tagChip { cursor: pointer; }
+.tagAdd {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border: 1px dashed var(--edge);
+    border-radius: 20px;
+    color: var(--text-dim);
+    font-size: .72rem;
+    font-weight: 700;
+}
+.tagAdd svg { width: 11px; height: 11px; }
+.tagAdd:hover { border-color: var(--accent-line); color: var(--accent-soft); }
+
+/* --- the status sheet --- */
+.statusSheet { display: flex; flex-direction: column; gap: 7px; }
+.statusRow {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 13px;
+    border-radius: 12px;
+    background-color: var(--bg-card);
+}
+.statusRow:hover { box-shadow: inset 0 0 0 1px var(--accent-line); }
+.statusText { flex: 1; min-width: 0; }
+.statusText b { display: block; font-size: .9rem; font-weight: 700; color: var(--text-bright); }
+.statusText small { display: block; margin-top: 2px; font-size: .74rem; color: var(--text-dim); }
+
+/* --- the tag sheet --- */
+.tagPickList { display: flex; flex-direction: column; gap: 7px; }
+.tagPickRow {
+    display: flex;
+    align-items: stretch;
+    gap: 7px;
+}
+.tagPickMain {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 13px;
+    border-radius: 12px;
+    background-color: var(--bg-card);
+    min-width: 0;
+}
+.tagPickMain:hover { box-shadow: inset 0 0 0 1px var(--accent-line); }
+.tagPickName {
+    flex: 1;
+    min-width: 0;
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tagPickDrop {
+    flex: 0 0 auto;
+    width: 44px;
+    border-radius: 12px;
+    background-color: var(--bg-card);
+    color: var(--text-faint);
+    display: grid;
+    place-items: center;
+}
+.tagPickDrop svg { width: 15px; height: 15px; }
+.tagPickDrop:hover { color: var(--accent-soft); }
+
+.swatchRow { display: flex; flex-wrap: wrap; gap: 9px; }
+.swatch {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    background-color: var(--bg-card);
+    box-shadow: inset 0 0 0 1px var(--edge);
+}
+.swatch span {
+    width: 20px;
+    height: 20px;
+    border-radius: 7px;
+    background-color: var(--tone);
+    display: block;
+}
+.swatch.on { box-shadow: inset 0 0 0 2px var(--tone); }
+
+/* --- profile --- */
+.profileCard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 15px;
+    margin: 6px 0 16px;
+    border-radius: 14px;
+    background-color: var(--bg-card);
+}
+.profileAvatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background-color: var(--accent);
+    color: var(--text-bright);
+    display: grid;
+    place-items: center;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: .95rem;
+    flex: 0 0 auto;
+}
+.profileText { min-width: 0; }
+.profileText b { display: block; font-size: 1rem; font-weight: 800; color: var(--text-bright); }
+.profileText small { display: block; margin-top: 2px; font-size: .78rem; color: var(--text-dim); }
+
+.statRow { display: flex; gap: 8px; margin-bottom: 16px; }
+
+/* --- export --- */
+.exportIntro { margin: 0 0 14px; font-size: .85rem; line-height: 1.55; color: var(--text-secondary); }
+.exportName {
+    margin: 12px 0 0;
+    font-size: .72rem;
+    color: var(--text-faint);
+    text-align: center;
+    word-break: break-all;
+}
+
+/* The active status filter wears that status's own colour, which ties the
+   chip to the rails on the cards below it. Tinted rather than filled so it
+   stays readable on every one of the five tones. */
+.fchip.on.toned {
+    background-color: color-mix(in srgb, var(--tone) 22%, transparent);
+    color: var(--tone);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 48%, transparent);
+}
+@supports not (background-color: color-mix(in srgb, red 10%, transparent)) {
+    .fchip.on.toned { background-color: var(--accent); color: var(--text-bright); }
 }

@@ -15,21 +15,21 @@
         form.clear();
 
         W.app.refreshBadge();
-        W.pages.avail.render();
+        W.pages.work.render();
         W.pages.week.render();
 
         if (thenPlan) {
             W.sheets.plan(job.id, () => {
                 W.app.refreshBadge();
-                W.pages.avail.render();
+                W.pages.work.render();
                 W.pages.week.render();
                 W.app.go('week');
             });
             return;
         }
 
-        W.app.toast('Saved to available work');
-        W.app.go('avail');
+        W.app.toast('Saved');
+        W.app.go('work');
     }
 
     W.pages = W.pages || {};
@@ -39,12 +39,20 @@
             r = U.roles(section);
             form = W.jobForm.mount(r.addForm, null);
 
+            // Clicked away once, gone for good — kept outside the job data so
+            // loading the example work does not bring the tip back.
+            U.toggle(r.addHint, !Store.hintDismissed('addForm'));
+
             section.addEventListener('click', e => {
                 const act = e.target.closest('[data-act]');
                 if (!act || !section.contains(act)) return;
 
                 if (act.dataset.act === 'save') save(false);
                 if (act.dataset.act === 'saveAndPlan') save(true);
+                if (act.dataset.act === 'dismissHint') {
+                    Store.dismissHint('addForm');
+                    U.toggle(r.addHint, false);
+                }
                 if (act.dataset.act === 'resetForm') {
                     form.clear();
                     W.app.toast('Form emptied');

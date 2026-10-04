@@ -22,8 +22,45 @@
                 clientId: null,
                 estimateMin: null,
                 deadline: null,
-                priority: 'normal'
+                priority: 'normal',
+                status: 'available',
+                tagIds: []
             };
+
+            /* ---------- status ---------- */
+
+            function renderStatus() {
+                const st = Store.status(state.status);
+                U.setText(r.statusText, st.label);
+                W.chips.paint(r.statusChip, st.tone);
+                U.setText(r.statusHint, st.hint);
+            }
+
+            /* ---------- tags ---------- */
+
+            function renderTags() {
+                U.empty(r.tagRow);
+
+                Store.tags()
+                    .filter(tag => state.tagIds.indexOf(tag.id) >= 0)
+                    .forEach(tag => {
+                        const chip = W.chips.chip(tag.name, W.chips.tagTone(tag.color));
+                        // tapping a chip takes it straight back off
+                        chip.addEventListener('click', () => {
+                            state.tagIds = state.tagIds.filter(id => id !== tag.id);
+                            renderTags();
+                        });
+                        r.tagRow.appendChild(chip);
+                    });
+
+                const add = document.createElement('button');
+                add.className = 'tagAdd';
+                add.dataset.act = 'pickTags';
+                add.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+                    'stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+                add.appendChild(document.createTextNode(state.tagIds.length ? 'Tag' : 'Add a tag'));
+                r.tagRow.appendChild(add);
+            }
 
             /* ---------- client ---------- */
 
@@ -184,6 +221,20 @@
                 if (act.dataset.act === 'pickClient') {
                     W.sheets.clients(client => setClient(client, true));
                 }
+
+                if (act.dataset.act === 'pickStatus') {
+                    W.sheets.status(state.status, id => {
+                        state.status = id;
+                        renderStatus();
+                    });
+                }
+
+                if (act.dataset.act === 'pickTags') {
+                    W.sheets.tags(state.tagIds, ids => {
+                        state.tagIds = ids;
+                        renderTags();
+                    });
+                }
             });
 
             /* ---------- controller ---------- */
@@ -200,6 +251,8 @@
                     state.estimateMin = f.estimateMin == null ? null : f.estimateMin;
                     state.deadline = f.deadline || null;
                     state.priority = f.priority || 'normal';
+                    state.status = f.status || 'available';
+                    state.tagIds = Array.isArray(f.tagIds) ? f.tagIds.slice() : [];
 
                     if (state.estimateMin != null && PRESET_MINUTES.indexOf(state.estimateMin) < 0) {
                         r.estHours.value = U.minutesToHours(state.estimateMin);
@@ -213,6 +266,8 @@
                     renderEstimate();
                     renderDeadline();
                     renderPriority();
+                    renderStatus();
+                    renderTags();
                 },
 
                 read: function () {
@@ -224,6 +279,8 @@
                         estimateMin: state.estimateMin ? state.estimateMin : null,
                         deadline: state.deadline,
                         priority: state.priority,
+                        status: state.status,
+                        tagIds: state.tagIds.slice(),
                         notes: r.notes.value.trim()
                     };
                 },

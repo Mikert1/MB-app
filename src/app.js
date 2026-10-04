@@ -6,7 +6,7 @@
     const Store = W.store;
     const App = W.app = {};
 
-    const PAGES = ['week', 'avail', 'add', 'clients'];
+    const PAGES = ['week', 'work', 'add', 'clients', 'profile'];
     let current = null;
     let toastTimer = null;
 
@@ -43,7 +43,7 @@
     /* ---------------- the nav badge ---------------- */
 
     App.refreshBadge = function () {
-        const badge = U.$('[data-role="availBadge"]');
+        const badge = U.$('[data-role="workBadge"]');
         const urgent = Store.available().filter(job => {
             if (job.priority === 'urgent') return true;
             if (!job.deadline) return false;
@@ -54,23 +54,8 @@
         U.toggle(badge, urgent > 0);
     };
 
-    /* ---------------- options (the ⋯ on My week) ---------------- */
-
-    /**
-     * The one option a tester can reach. "Reset the demo data" and "Start
-     * completely empty" used to live here and were removed: a single stray
-     * tap wiped everything the tester had entered, which is a real risk and
-     * no help to them. Store.seed() and Store.clearAll() still exist for us.
-     */
-    App.demoMenu = function () {
-        W.sheets.menu('Options', [
-            {
-                label: 'Hours in your week',
-                sub: 'Now ' + U.minutesToHours(Store.settings().weekHours * 60) + ' hours \u2014 what the bar measures against',
-                onPick: () => W.sheets.weekTarget(renderAll)
-            }
-        ]);
-    };
+    /* The ⋯ menu is gone: its only setting (hours in your week) lives on the
+       Profile page now, together with the export. */
 
     function renderAll() {
         PAGES.forEach(name => W.pages[name].render());
@@ -136,10 +121,14 @@
 
         Store.onChange(App.refreshBadge);
 
+        /* Every page is drawn first, then we switch to one. Doing it the other
+           way round meant the page we had just shown was immediately rendered
+           a second time, which threw away My week's jump to today. */
+        renderAll();
+
         const start = (location.hash || '').replace('#', '');
         current = null;
         App.go(PAGES.indexOf(start) >= 0 ? start : 'week');
-        renderAll();
 
         document.getElementById('app').hidden = false;
         if (splash) {

@@ -608,6 +608,151 @@
     };
 
     /* ============================================================
+       Status — where a job stands with the client. This is what
+       colours the card, so picking it is a first-class action.
+       ============================================================ */
+    Sheets.status = function (current, onPick) {
+        const body = U.clone('tpl-statusSheet');
+        const r = U.roles(body);
+
+        Store.STATUSES.forEach(st => {
+            const row = U.clone('tpl-statusRow');
+            const rr = U.roles(row);
+            W.chips.paint(rr.dot, st.tone);
+            U.setText(rr.label, st.label);
+            U.setText(rr.hint, st.hint);
+            U.toggle(rr.mark, st.id === current);
+
+            row.addEventListener('click', () => {
+                Sheets.close();
+                onPick(st.id);
+            });
+            r.list.appendChild(row);
+        });
+
+        open('Status', body, { sub: 'Also sets the colour this job shows up in' });
+    };
+
+    /* ============================================================
+       Tags — the company's own labels, with their own colours.
+       ============================================================ */
+    Sheets.tags = function (selectedIds, onChange) {
+        const body = U.clone('tpl-tagSheet');
+        const r = U.roles(body);
+        const chosen = (selectedIds || []).slice();
+        let colour = Store.TAG_COLOURS[0];
+
+        function renderList() {
+            U.empty(r.list);
+            const all = Store.tags();
+
+            if (!all.length) {
+                const empty = U.clone('tpl-emptyState');
+                const er = U.roles(empty);
+                U.setText(er.title, 'No tags yet');
+                U.setText(er.sub, 'Make one below — "Needs parts", "To invoice", whatever you sort work by.');
+                r.list.appendChild(empty);
+                return;
+            }
+
+            all.forEach(tag => {
+                const row = U.clone('tpl-tagPickRow');
+                const rr = U.roles(row);
+                W.chips.paint(rr.dot, W.chips.tagTone(tag.color));
+                U.setText(rr.name, tag.name);
+                U.toggle(rr.mark, chosen.indexOf(tag.id) >= 0);
+
+                row.addEventListener('click', e => {
+                    const act = e.target.closest('[data-act]');
+                    if (!act) return;
+
+                    if (act.dataset.act === 'toggleTag') {
+                        const at = chosen.indexOf(tag.id);
+                        if (at >= 0) chosen.splice(at, 1);
+                        else chosen.push(tag.id);
+                        renderList();
+                        onChange(chosen.slice());
+                        return;
+                    }
+
+                    if (act.dataset.act === 'deleteTag') {
+                        const used = Store.jobCountForTag(tag.id);
+                        Sheets.confirm(
+                            used
+                                ? 'Delete the tag “' + tag.name + '”? It comes off ' +
+                                  U.plural(used, 'job', 'jobs') + ' as well.'
+                                : 'Delete the tag “' + tag.name + '”?',
+                            'Delete it',
+                            () => {
+                                Store.deleteTag(tag.id);
+                                const at = chosen.indexOf(tag.id);
+                                if (at >= 0) chosen.splice(at, 1);
+                                renderList();
+                                onChange(chosen.slice());
+                                W.app.toast('Tag deleted');
+                            }
+                        );
+                    }
+                });
+
+                r.list.appendChild(row);
+            });
+        }
+
+        function renderSwatches() {
+            U.empty(r.swatches);
+            Store.TAG_COLOURS.forEach(name => {
+                const sw = U.clone('tpl-swatch');
+                W.chips.paint(sw, W.chips.tagTone(name));
+                sw.classList.toggle('on', name === colour);
+                sw.addEventListener('click', () => {
+                    colour = name;
+                    renderSwatches();
+                });
+                r.swatches.appendChild(sw);
+            });
+        }
+
+        r.newName.addEventListener('input', () => {
+            r.newName.classList.remove('bad');
+            U.toggle(r.newErr, false);
+        });
+
+        body.addEventListener('click', e => {
+            const act = e.target.closest('[data-act]');
+            if (!act) return;
+
+            if (act.dataset.act === 'toggleNewTag') {
+                const opening = r.newWrap.hidden;
+                U.toggle(r.newWrap, opening);
+                U.$('.detailsToggle', body).classList.toggle('open', opening);
+                U.setText(r.newLabel, opening ? 'Never mind' : 'Make a new tag');
+                if (opening) setTimeout(() => r.newName.focus(), 60);
+            }
+
+            if (act.dataset.act === 'createTag') {
+                const name = r.newName.value.trim();
+                if (!name) {
+                    r.newName.classList.add('bad');
+                    U.toggle(r.newErr, true);
+                    r.newName.focus();
+                    return;
+                }
+                const tag = Store.addTag({ name: name, color: colour });
+                if (chosen.indexOf(tag.id) < 0) chosen.push(tag.id);
+                r.newName.value = '';
+                renderList();
+                onChange(chosen.slice());
+                W.app.toast('Tag “' + tag.name + '” added');
+            }
+        });
+
+        renderList();
+        renderSwatches();
+        open('Tags', body, { sub: 'Tap to put a tag on this job, or take it off' });
+    };
+
+    /* ============================================================
        Client picker — search the list, or add one by name
        ============================================================ */
     Sheets.clients = function (onPick) {
@@ -657,16 +802,127 @@
         newRow.addEventListener('click', () => {
             const name = r.search.value.trim();
             if (!name) return;
-            const client = Store.addClient({ name: name });
-            Sheets.close();
-            W.app.toast('Added ' + client.name);
-            onPick(client);
+            // Ask for the address while they are thinking about this client,
+            // rather than quietly filing a name with nothing attached.
+            Sheets.newClient(name, client => {
+                if (onPick) onPick(client);
+            });
         });
 
         r.search.addEventListener('input', render);
         render();
         open('Pick a client', body, { sub: 'Or type a name to add a new one' });
         setTimeout(() => r.search.focus(), 320);
+    };
+
+    /** The second half of adding a client: their details. */
+    Sheets.newClient = function (name, onAdded) {
+        const body = U.clone('tpl-newClientSheet');
+        const r = U.roles(body);
+        r.name.value = name || '';
+
+        r.name.addEventListener('input', () => {
+            r.name.classList.remove('bad');
+            U.toggle(r.nameErr, false);
+        });
+
+        function commit() {
+            const typed = r.name.value.trim();
+            if (!typed) {
+                r.name.classList.add('bad');
+                U.toggle(r.nameErr, true);
+                r.name.focus();
+                return;
+            }
+            const client = Store.addClient({ name: typed, location: r.where.value });
+            Sheets.closeAll();
+            W.app.toast(client.name + ' added');
+            if (onAdded) onAdded(client);
+        }
+
+        r.where.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        });
+        body.addEventListener('click', e => {
+            if (e.target.closest('[data-act="saveNewClient"]')) commit();
+        });
+
+        open('New client', body);
+        setTimeout(() => r.where.focus(), 320);
+    };
+
+    /* ============================================================
+       Export — the tester's way of handing their work over.
+       ============================================================ */
+    Sheets.export = function () {
+        const body = U.clone('tpl-exportSheet');
+        const r = U.roles(body);
+
+        const payload = Store.exportAll();
+        const text = JSON.stringify(payload, null, 2);
+        const filename = 'mb-app-export-' + U.today() + '.json';
+        U.setText(r.filename, filename);
+
+        const stats = U.clone('tpl-statRow');
+        const sr = U.roles(stats);
+        U.setText(sr.a, payload.counts.jobs);
+        U.setText(sr.aLbl, payload.counts.jobs === 1 ? 'job' : 'jobs');
+        U.setText(sr.b, payload.counts.clients);
+        U.setText(sr.bLbl, payload.counts.clients === 1 ? 'client' : 'clients');
+        U.setText(sr.c, Math.max(1, Math.round(text.length / 1024)));
+        U.setText(sr.cLbl, 'KB');
+        r.stats.appendChild(stats);
+
+        body.addEventListener('click', e => {
+            const act = e.target.closest('[data-act]');
+            if (!act) return;
+
+            if (act.dataset.act === 'downloadExport') {
+                try {
+                    const blob = new Blob([text], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    // give the browser a moment to start the download first
+                    setTimeout(() => URL.revokeObjectURL(url), 2000);
+                    W.app.toast('Saved as ' + filename);
+                } catch (err) {
+                    console.warn('MB app: download failed', err);
+                    W.app.toast('This browser blocked the download — use Copy instead');
+                }
+            }
+
+            if (act.dataset.act === 'copyExport') {
+                const done = () => W.app.toast('Copied — paste it into a message');
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done, () => W.app.toast('Could not copy'));
+                } else {
+                    W.app.toast('Could not copy here — use Download instead');
+                }
+            }
+        });
+
+        open('Export your data', body, { sub: payload.counts.jobs
+            ? U.plural(payload.counts.jobs, 'job', 'jobs') + ' and ' +
+              U.plural(payload.counts.clients, 'client', 'clients')
+            : 'Nothing stored yet' });
+    };
+
+    /** Plain words about where the data lives, since there is no account. */
+    Sheets.storageInfo = function () {
+        const body = document.createElement('div');
+        const p = document.createElement('p');
+        p.className = 'exportIntro';
+        p.textContent = 'This demo has no server. Every job, client and tag you enter is ' +
+            'saved in this browser on this device, and it stays there until you clear the ' +
+            'browser’s site data. It is not synced, not backed up, and nobody else can see ' +
+            'it. Use Export everything to get a copy you can send.';
+        body.appendChild(p);
+        open('Where this is stored', body);
     };
 
     /* ============================================================

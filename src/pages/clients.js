@@ -11,12 +11,7 @@
     const U = W.util;
     const Store = W.store;
 
-    let section, r, query = '';
-
-    function matches(client) {
-        if (!query) return true;
-        return (client.name + ' ' + (client.location || '')).toLowerCase().indexOf(query) >= 0;
-    }
+    let section, r;
 
     function clientCard(client) {
         const card = U.clone('tpl-clientCard');
@@ -73,23 +68,15 @@
             : 'Nothing finished yet');
         body.appendChild(prev);
 
-        const shown = all.filter(matches);
-
         if (!all.length) {
             const empty = U.clone('tpl-emptyState');
             const er = U.roles(empty);
             U.setText(er.title, 'No clients yet');
-            U.setText(er.sub, 'Add one here, or link a client while you are entering a job.');
-            body.appendChild(empty);
-        } else if (!shown.length) {
-            const empty = U.clone('tpl-emptyState');
-            const er = U.roles(empty);
-            U.setText(er.title, 'Nothing matches “' + query + '”');
-            U.setText(er.sub, 'Try part of the name or the town.');
+            U.setText(er.sub, 'Add one with the button below, or link a client while you are entering a job.');
             body.appendChild(empty);
         } else {
-            body.appendChild(sectionLabel('Clients', U.plural(shown.length, 'client', 'clients')));
-            shown.forEach(client => body.appendChild(clientCard(client)));
+            body.appendChild(sectionLabel('Clients', U.plural(all.length, 'client', 'clients')));
+            all.forEach(client => body.appendChild(clientCard(client)));
         }
 
         body.appendChild(U.clone('tpl-addClient'));
@@ -101,32 +88,19 @@
             section = el;
             r = U.roles(section);
 
-            r.clientSearch.addEventListener('input', () => {
-                query = r.clientSearch.value.trim().toLowerCase();
-                render();
-            });
-
             section.addEventListener('click', e => {
                 const act = e.target.closest('[data-act]');
                 if (!act || !section.contains(act)) return;
 
                 if (act.dataset.act === 'openArchive') W.sheets.archive(render);
 
-                if (act.dataset.act === 'toggleClientSearch') {
-                    const opening = r.clientSearchWrap.hidden;
-                    U.toggle(r.clientSearchWrap, opening);
-                    if (opening) r.clientSearch.focus();
-                    else clearSearch();
-                }
-                if (act.dataset.act === 'clearClientSearch') clearSearch();
-
-                if (act.dataset.act === 'newClientOnPage') {
-                    // The picker already knows how to take a typed name and
-                    // turn it into a client, so reuse it rather than build a
-                    // second way of doing the same thing.
+                /* One control for both jobs: the picker searches the list and
+                   can create a client that is not on it, so the page needs no
+                   filter field of its own. */
+                if (act.dataset.act === 'openPicker') {
                     W.sheets.clients(client => {
                         render();
-                        W.app.toast(client.name + ' is on the list');
+                        W.sheets.client(client.id, render);
                     });
                 }
             });
@@ -135,11 +109,5 @@
         show: render,
         render: render
     };
-
-    function clearSearch() {
-        r.clientSearch.value = '';
-        query = '';
-        render();
-    }
 
 }(window));
