@@ -32,7 +32,7 @@
             function renderStatus() {
                 const st = Store.status(state.status);
                 U.setText(r.statusText, st.label);
-                W.chips.paint(r.statusChip, st.tone);
+                W.chips.paintStatus(r.statusChip, st);
                 U.setText(r.statusHint, st.hint);
             }
 
@@ -44,7 +44,7 @@
                 Store.tags()
                     .filter(tag => state.tagIds.indexOf(tag.id) >= 0)
                     .forEach(tag => {
-                        const chip = W.chips.chip(tag.name, W.chips.tagTone(tag.color));
+                        const chip = W.chips.tag(tag);
                         // tapping a chip takes it straight back off
                         chip.addEventListener('click', () => {
                             state.tagIds = state.tagIds.filter(id => id !== tag.id);

@@ -5,7 +5,7 @@
 <!-- user-scalable=no: this is a phone app, and pinch-zoom over a fixed navbar
      only ever leaves people stranded half-zoomed. -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#050909">
+<meta name="theme-color" content="#0C0E11">
 <meta name="description" content="MB app demo — incoming work in, a planned week out.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,7 +15,7 @@
 <link rel="apple-touch-icon" href="assets/icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -48,9 +48,13 @@
             </button>
           </div>
         </div>
+        <!-- One button per day, built by the page: tap one to jump to it. -->
+        <div class="weekStrip" data-role="weekStrip"></div>
+        <!-- Floats over the list (see .todayJump) whenever another week is
+             scrolled into view, so it never pushes the list around. -->
         <button class="todayJump" data-act="thisWeek" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h13M11 7l5 5-5 5M20 5v14"/></svg>
-          Back to this week
+          Back to today
         </button>
       </header>
 
@@ -65,15 +69,14 @@
             <h1 class="hdrTitle">Work</h1>
             <p class="hdrSub" data-role="workSub">—</p>
           </div>
-          <button class="iconBtn" data-act="toggleSearch" aria-label="Search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          </button>
         </div>
 
-        <div class="searchWrap" data-role="searchWrap" hidden>
+        <!-- Always out: searching is how you find the job someone is calling
+             about, so it should not hide behind an icon. -->
+        <div class="searchWrap">
           <svg class="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input class="searchInp" data-role="search" type="search" placeholder="Title, client or place…" autocomplete="off">
-          <button class="searchClear" data-act="clearSearch" aria-label="Clear search">&times;</button>
+          <input class="searchInp" data-role="search" type="search" placeholder="Title, client or place…" autocomplete="off" aria-label="Search work">
+          <button class="searchClear" data-act="clearSearch" data-role="searchClear" aria-label="Clear search" hidden>&times;</button>
         </div>
 
         <!-- One chip per status, built by the page so the labels and colours
@@ -253,8 +256,10 @@
   <div class="day">
     <div class="dayHead">
       <div class="dayNum" data-role="num"></div>
-      <div class="dayName" data-role="name"></div>
-      <div class="dayLoad" data-role="load"></div>
+      <div class="dayText">
+        <div class="dayName" data-role="name"></div>
+        <div class="dayLoad" data-role="load"></div>
+      </div>
       <button class="dayAdd" data-act="addToDay" aria-label="Add work to this day">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       </button>
@@ -270,7 +275,6 @@
     <span class="meat">
       <span class="topRow">
         <span class="jobTitle" data-role="title"></span>
-        <span class="tagChip" data-role="statusChip"><span data-role="statusText"></span></span>
       </span>
       <span class="sub">
         <span class="subBit" data-role="clientWrap">
@@ -278,13 +282,23 @@
           <span data-role="client"></span>
         </span>
         <span class="sep" data-role="sep">·</span>
-        <span class="subBit" data-role="locWrap">
+        <span class="subBit place" data-role="locWrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
           <span data-role="location"></span>
         </span>
       </span>
       <span class="chips" data-role="chips"></span>
     </span>
+  </button>
+</template>
+
+<!-- A day in the strip under the My week header. --load (set from JS) is how
+     full the day is, as a percentage of a fifth of the working week. -->
+<template id="tpl-stripDay">
+  <button class="stripDay" data-act="jumpToDay">
+    <b data-role="name"></b>
+    <span data-role="num"></span>
+    <i aria-hidden="true"></i>
   </button>
 </template>
 
@@ -298,7 +312,6 @@
     <div class="meat">
       <button class="titleRow" data-act="open">
         <span class="wTitle" data-role="title"></span>
-        <span class="tagChip" data-role="statusChip"><span data-role="statusText"></span></span>
       </button>
       <p class="sub">
         <span class="subBit" data-role="clientWrap">
@@ -306,7 +319,7 @@
           <span data-role="client"></span>
         </span>
         <span class="sep" data-role="sep">·</span>
-        <span class="subBit" data-role="locWrap">
+        <span class="subBit place" data-role="locWrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
           <span data-role="location"></span>
         </span>

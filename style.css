@@ -9,86 +9,100 @@
    A light theme can be added later by overriding this block
    under html[data-theme="light"]; never put a hex literal in
    the markup or in JS (JS uses var(--...) strings).
+
+   Two rules hold the palette together:
+   - crimson means "act on this": the main button, today, urgent,
+     the nav badge. It is never a status.
+   - white means "selected": an active filter, a picked chip.
+   Every colour that carries text clears 4.5:1 on a card.
    ============================================================ */
 :root {
     color-scheme: dark;
 
     /* backgrounds, darkest to lightest */
-    --bg-app: #050909;
-    --bg-deep: #070B0B;
-    --bg-inset: #0E1214;
-    --bg-card: #131619;
-    --bg-raised: #1a1f25;
-    --bg-slate: #263238;
-    --bg-chip: #2B3038;
-    --bg-selected: #241317;
-    --bg-glass: rgba(13, 16, 19, .94);
-    --divider: #1a1414;
-    --edge: #1e242a;
+    --bg-app: #0C0E11;
+    --bg-deep: #101317;
+    --bg-inset: #111418;
+    --bg-card: #16191E;
+    --bg-raised: #1E2228;
+    --bg-slate: #2A2F37;
+    --bg-chip: #2A2F37;
+    --bg-selected: #241419;
+    --bg-glass: rgba(12, 14, 17, .94);
+    --divider: #20242B;
+    --edge: #252A31;
+    --edge-soft: #20242B;
 
-    /* text, brightest to dimmest */
+    /* text, brightest to dimmest. --text-muted is the floor for anything
+       you read; --text-ghost is only ever a line or an icon. */
     --text-bright: #ffffff;
-    --text-primary: #f0f0f0;
-    --text-secondary: #999999;
-    --text-muted: #888888;
-    --text-dim: #777777;
-    --text-faint: #555555;
-    --text-ghost: #333333;
+    --text-primary: #F3F4F6;
+    --text-secondary: #B4BAC3;
+    --text-muted: #8D949E;
+    --text-dim: #8D949E;
+    --text-faint: #8D949E;
+    --text-ghost: #3A414A;
+    /* text on a white (selected) chip */
+    --text-on-light: #0C0E11;
+    --text-on-light-soft: #4A515B;
 
     /* accent (brand red) */
     --accent: #E5063C;
     --accent-deep: #A3042D;
-    --accent-soft: #FF668C;
-    --accent-tint: rgba(229, 6, 60, .10);
-    --accent-line: rgba(229, 6, 60, .22);
-    --accent-glow: rgba(229, 6, 60, .45);
+    --accent-soft: #EF6586;
+    --accent-tint: rgba(229, 6, 60, .14);
+    --accent-line: rgba(229, 6, 60, .32);
+    --accent-glow: rgba(229, 6, 60, .35);
 
-    /* status — warning carries "high priority" so it never competes
-       with the brand red, which only ever means urgent / now */
+    /* warning carries "high priority" and "over the week" so it never
+       competes with the brand red, which only ever means urgent / now */
     --warning: #FFBB00;
     --warning-tint: rgba(255, 187, 0, .13);
     --warning-line: rgba(255, 187, 0, .30);
-    --orange: #FF9500;
-    --success: #5ECB7F;
-    --success-tint: rgba(94, 203, 127, .14);
+    --orange: #FF8A3D;
+    --success: #4FCB7E;
+    --success-tint: rgba(79, 203, 126, .14);
 
     /* dimmed page behind a sheet */
-    --scrim: rgba(5, 9, 9, .66);
+    --scrim: rgba(5, 7, 9, .66);
     --shadow-sheet: 0 -18px 50px rgba(0, 0, 0, .6);
     --shadow-toast: 0 8px 24px rgba(0, 0, 0, .45);
 
     /* ---- status colours ----
        A card's colour comes from where the job stands with the client, so
        these are the only tints a card ever wears. Priority is a tag now, and
-       lives in the --prio-* set below. */
-    --status-available:  #8A949C;   /* grey  — nothing arranged */
-    --status-canmove:    #FF7A2F;   /* orange — pencilled in */
-    --status-agreedmove: #FFC400;   /* yellow — agreed, but shiftable */
-    --status-agreed:     #E5063C;   /* red    — fixed, do not move */
-    --status-done:       #5ECB7F;   /* green  — finished */
+       lives in the --prio-* set below. Agreed is blue, not red: red is
+       kept for urgent. The status glyph (see "Status glyph" below) fills up
+       as a job firms up, so the ladder also reads without the colour. */
+    --status-available:  #9AA3AE;   /* grey   — nothing arranged */
+    --status-canmove:    #FF8A3D;   /* orange — pencilled in */
+    --status-agreedmove: #F5C518;   /* yellow — agreed, but shiftable */
+    --status-agreed:     #5B9BFF;   /* blue   — fixed, do not move */
+    --status-done:       #4FCB7E;   /* green  — finished */
 
     /* priority, worn only by its own chip */
     --prio-urgent: #E5063C;
-    --prio-high:   #FF9500;
-    --prio-low:    #6B737A;
+    --prio-high:   #FFBB00;
+    --prio-low:    #8D949E;
 
-    /* the palette a custom tag can be given */
-    --tag-red:    #E5063C;
-    --tag-orange: #FF7A2F;
-    --tag-amber:  #FFBB00;
-    --tag-green:  #5ECB7F;
-    --tag-teal:   #22B8B0;
-    --tag-violet: #9B7BFF;
-    --tag-pink:   #FF6FA5;
-    --tag-grey:   #8A949C;
+    /* the palette a custom tag can be given — a tag only ever shows it as a
+       dot, so these never compete with the status colours */
+    --tag-red:    #F0506E;
+    --tag-orange: #FF8A3D;
+    --tag-amber:  #F5C518;
+    --tag-green:  #4FCB7E;
+    --tag-teal:   #2EC4B6;
+    --tag-violet: #A48BFF;
+    --tag-pink:   #FF7EB6;
+    --tag-grey:   #9AA3AE;
 
     /* the canvas the app column sits on, on a wide screen */
-    --board-bg: #0a0d0e;
+    --board-bg: #08090B;
 
     /* safe-area insets (real values inside a standalone/native shell) */
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --nav-h: 88px;
+    --nav-h: 84px;
 }
 
 * { box-sizing: border-box; }
@@ -118,7 +132,7 @@ html {
 body {
     background-color: var(--board-bg);
     color: var(--text-primary);
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Manrope', system-ui, sans-serif;
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     overscroll-behavior-y: none;
@@ -181,53 +195,125 @@ button {
 /* ---------- page header ---------- */
 .hdr {
     flex: 0 0 auto;
-    padding: calc(26px + var(--safe-top)) 18px 10px;
+    padding: calc(22px + var(--safe-top)) 18px 12px;
     background-color: var(--bg-app);
 }
-.hdrTop { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.hdrTop { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .hdrText { min-width: 0; }
 .hdrTitle {
     margin: 0;
-    font-size: 1.45rem;
+    font-size: 1.75rem;
+    line-height: 1.2;
     font-weight: 800;
-    letter-spacing: -.01em;
-    color: var(--text-bright);
+    letter-spacing: -.02em;
+    color: var(--text-primary);
 }
-.hdrSub { margin: 3px 0 0; font-size: .82rem; color: var(--text-dim); }
+.hdrSub { margin: 2px 0 0; font-size: .875rem; line-height: 1.4; font-weight: 500; color: var(--text-muted); }
 
-.stepper { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.stepper { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 
+/* 44px: the smallest thing a thumb hits reliably. */
 .iconBtn {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
     background-color: var(--bg-card);
-    color: var(--text-secondary);
+    box-shadow: inset 0 0 0 1px var(--edge);
+    color: var(--text-primary);
     display: grid;
     place-items: center;
     flex: 0 0 auto;
     transition: background-color .15s ease, color .15s ease;
 }
-.iconBtn svg { width: 16px; height: 16px; }
+.iconBtn svg { width: 18px; height: 18px; }
 .iconBtn:hover { background-color: var(--bg-raised); color: var(--text-bright); }
 .iconBtn:active { transform: scale(.94); }
-.iconBtn.small { width: 28px; height: 28px; border-radius: 9px; }
-.iconBtn.small svg { width: 14px; height: 14px; }
+.iconBtn.small { width: 40px; height: 40px; border-radius: 12px; }
+.iconBtn.small svg { width: 16px; height: 16px; }
 
+/* Floats just above the nav rather than sitting in the header: it comes and
+   goes as you scroll between weeks, and in the header it would shove the
+   whole list down every time it did. */
 .todayJump {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--nav-h) + 14px + var(--safe-bottom));
+    transform: translateX(-50%);
+    z-index: 16;
     display: flex;
     align-items: center;
-    gap: 7px;
-    margin-top: 11px;
-    padding: 8px 13px;
-    border-radius: 10px;
-    background-color: var(--accent-tint);
-    box-shadow: inset 0 0 0 1px var(--accent-line);
-    color: var(--accent-soft);
-    font-size: .78rem;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 999px;
+    background-color: var(--bg-raised);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .5), inset 0 0 0 1px var(--edge);
+    color: var(--text-primary);
+    font-size: .875rem;
     font-weight: 700;
+    white-space: nowrap;
 }
-.todayJump svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.todayJump svg { width: 16px; height: 16px; flex: 0 0 auto; color: var(--accent-soft); }
+.todayJump:active { transform: translateX(-50%) scale(.96); }
+
+/* ---------- the week at a glance ----------
+   One button per day under the My week header. The bar is how full that
+   day is against a fifth of the working week; amber once it runs over. */
+.weekStrip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 14px;
+}
+.stripDay {
+    height: 64px;
+    border-radius: 14px;
+    background-color: var(--bg-card);
+    box-shadow: inset 0 0 0 1px var(--edge-soft);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    text-align: center;
+}
+.stripDay:active { transform: scale(.95); }
+.stripDay b { font-size: .75rem; line-height: 1.3; font-weight: 600; color: var(--text-muted); }
+.stripDay span {
+    font-size: 1.125rem;
+    line-height: 1.2;
+    font-weight: 800;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+.stripDay i {
+    display: block;
+    width: 20px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: var(--edge);
+    overflow: hidden;
+}
+.stripDay i::after {
+    content: '';
+    display: block;
+    width: var(--load, 0%);
+    height: 100%;
+    border-radius: 2px;
+    background-color: var(--text-secondary);
+}
+.stripDay.over i::after { background-color: var(--warning); }
+.stripDay.past { background-color: transparent; }
+.stripDay.past span { color: var(--text-muted); }
+.stripDay.past i::after { background-color: var(--text-ghost); }
+/* the day at the top of the list right now — the strip follows the scroll */
+.stripDay.atTop { background-color: var(--bg-raised); box-shadow: inset 0 0 0 2px var(--text-muted); }
+.stripDay.today { background-color: var(--accent); box-shadow: none; }
+.stripDay.today.atTop { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .55); }
+.stripDay.today b { color: rgba(255, 255, 255, .86); }
+.stripDay.today span { color: var(--text-bright); }
+.stripDay.today i { background-color: rgba(255, 255, 255, .32); }
+.stripDay.today i::after { background-color: var(--text-bright); }
 
 /* ---------- scrolling body ---------- */
 .body {
@@ -245,21 +331,24 @@ button {
 /* ============================================================
    Shared pieces
    ============================================================ */
-.card { background-color: var(--bg-card); border-radius: 14px; }
+.card { background-color: var(--bg-card); border-radius: 16px; }
 
+/* Plain facts: a duration, a deadline, "any time". Pills, never coloured
+   unless the fact itself needs acting on. */
 .chip {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 4px 9px;
-    border-radius: 8px;
-    background-color: var(--bg-chip);
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background-color: var(--bg-raised);
     color: var(--text-secondary);
-    font-size: .7rem;
-    font-weight: 600;
+    font-size: .75rem;
+    font-weight: 700;
     white-space: nowrap;
 }
-.chip svg { width: 11px; height: 11px; flex: 0 0 auto; }
+.chip svg { width: 12px; height: 12px; flex: 0 0 auto; }
 .chip.accent {
     background-color: var(--accent-tint);
     color: var(--accent-soft);
@@ -267,34 +356,97 @@ button {
 }
 .chip.warn { background-color: var(--warning-tint); color: var(--warning); }
 .chip.ok { background-color: var(--success-tint); color: var(--success); }
-.chip.ghost { background-color: transparent; color: var(--text-faint); box-shadow: inset 0 0 0 1px var(--edge); }
+.chip.ghost { background-color: transparent; color: var(--text-muted); box-shadow: inset 0 0 0 1px var(--edge); }
 
 /* A chip that carries its own colour. --tone is set from JS to one of the
-   palette variables; colour-mix keeps the fill a tint of it so the text stays
-   readable without a second variable per colour. */
+   palette variables. The three kinds look deliberately different, so a
+   status, a priority and a tag can never be mistaken for one another:
+   - a status (data-status) is tinted in its colour and wears the glyph,
+   - a priority (data-prio) is neutral with an arrow; only urgent is filled,
+   - a tag (.isTag) is neutral with a dot of its colour. */
 .tagChip {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 9px;
-    border-radius: 20px;
-    font-size: .68rem;
-    font-weight: 800;
-    letter-spacing: .04em;
-    text-transform: uppercase;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 700;
     white-space: nowrap;
+    color: var(--text-secondary);
+    background-color: var(--bg-raised);
+}
+.tagChip[data-status] {
+    padding-left: 8px;
     color: var(--tone, var(--text-secondary));
-    background-color: color-mix(in srgb, var(--tone, #888) 16%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone, #888) 34%, transparent);
+    background-color: color-mix(in srgb, var(--tone, #888) 14%, transparent);
 }
 /* Browsers without colour-mix still get a readable chip. */
 @supports not (background-color: color-mix(in srgb, red 10%, transparent)) {
-    .tagChip { background-color: var(--bg-chip); }
+    .tagChip[data-status] { background-color: var(--bg-raised); }
 }
+.tagChip.isTag { padding-left: 9px; }
+.tagChip.isTag::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    background-color: var(--tone, var(--text-muted));
+}
+.tagChip[data-prio] { padding-left: 8px; }
+.tagChip[data-prio]::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    flex: 0 0 auto;
+    background-color: currentColor;
+    -webkit-mask: var(--icon) center / contain no-repeat;
+    mask: var(--icon) center / contain no-repeat;
+}
+.tagChip[data-prio="urgent"] {
+    --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.2' stroke-linecap='round'%3E%3Cpath d='M12 5v9M12 19h.01'/%3E%3C/svg%3E");
+    background-color: var(--prio-urgent);
+    color: var(--text-bright);
+    font-weight: 800;
+}
+.tagChip[data-prio="high"] {
+    --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19V5M6 11l6-6 6 6'/%3E%3C/svg%3E");
+    color: var(--text-primary);
+}
+.tagChip[data-prio="high"]::before { background-color: var(--prio-high); }
+.tagChip[data-prio="low"] {
+    --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M6 13l6 6 6-6'/%3E%3C/svg%3E");
+}
+.tagChip[data-prio="low"]::before { background-color: var(--prio-low); }
 .tagChip.solid {
     color: var(--text-bright);
     background-color: var(--tone);
     box-shadow: none;
+}
+
+/* ---------- Status glyph ----------
+   How firm a job is, drawn as a circle that fills up: empty, a third, two
+   thirds, full, full with a tick. Set by data-status (see chips.js), with
+   --tone carrying the colour. */
+[data-status] { --fill: transparent; }
+[data-status="canmove"] { --fill: conic-gradient(var(--tone) 0 33%, transparent 0); }
+[data-status="agreedmove"] { --fill: conic-gradient(var(--tone) 0 66%, transparent 0); }
+[data-status="agreed"] { --fill: var(--tone); }
+[data-status="done"] {
+    --fill: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230C0E11' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 70% no-repeat, var(--tone);
+}
+.tagChip[data-status]::before,
+.fchip[data-status]::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 1.5px solid var(--tone);
+    background: var(--fill);
 }
 
 .statusDot {
@@ -304,24 +456,36 @@ button {
     flex: 0 0 auto;
     background-color: var(--tone, var(--bg-chip));
 }
+.statusDot[data-status] {
+    width: 18px;
+    height: 18px;
+    box-sizing: border-box;
+    border: 2px solid var(--tone);
+    background: var(--fill);
+}
+
+/* the tick that marks the current choice in a picker sheet */
+.menuMark { display: grid; place-items: center; flex: 0 0 auto; color: var(--text-primary); }
+.menuMark svg { width: 18px; height: 18px; }
 
 .sectionLabel {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin: 20px 2px 9px;
-    font-size: .72rem;
-    font-weight: 700;
+    margin: 22px 2px 10px;
+    font-size: .75rem;
+    font-weight: 800;
     letter-spacing: .08em;
     text-transform: uppercase;
-    color: var(--text-faint);
+    color: var(--text-muted);
 }
 .sectionLabel .plain {
     letter-spacing: 0;
     text-transform: none;
-    font-weight: 600;
-    color: var(--text-dim);
+    font-size: .8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
     flex: 0 0 auto;
 }
 
@@ -329,28 +493,28 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 9px;
+    gap: 10px;
     padding: 46px 24px;
     text-align: center;
-    color: var(--text-dim);
+    color: var(--text-muted);
 }
-.emptyState svg { width: 42px; height: 42px; color: var(--text-ghost); }
-.emptyState p { margin: 0; font-size: .95rem; font-weight: 700; color: var(--text-secondary); }
-.emptyState small { font-size: .82rem; color: var(--text-faint); max-width: 30ch; line-height: 1.5; }
+.emptyState svg { width: 44px; height: 44px; color: var(--text-ghost); }
+.emptyState p { margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-secondary); }
+.emptyState small { font-size: .875rem; color: var(--text-muted); max-width: 30ch; line-height: 1.5; }
 
 /* ============================================================
    Page 1 — my week
    ============================================================ */
-.capCard { padding: 14px 15px; margin-top: 6px; }
-.capTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 11px; }
-.capBig { font-size: 1.35rem; font-weight: 800; color: var(--text-bright); line-height: 1; }
-.capBig small { font-size: .8rem; font-weight: 600; color: var(--text-dim); }
-.capUnder { font-size: .74rem; color: var(--text-dim); margin-top: 4px; }
-.capMeta { font-size: .72rem; color: var(--text-dim); text-align: right; line-height: 1.5; flex: 0 0 auto; }
+.capCard { padding: 16px; margin-top: 6px; }
+.capTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.capBig { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); line-height: 1; font-variant-numeric: tabular-nums; }
+.capBig small { font-size: .875rem; font-weight: 600; color: var(--text-muted); }
+.capUnder { font-size: .8125rem; color: var(--text-muted); margin-top: 6px; }
+.capMeta { font-size: .8125rem; color: var(--text-secondary); text-align: right; line-height: 1.5; flex: 0 0 auto; }
 
 .bar {
     display: flex;
-    height: 8px;
+    height: 10px;
     border-radius: 5px;
     background-color: var(--bg-inset);
     overflow: hidden;
@@ -360,9 +524,9 @@ button {
 .bar i.filled { background-color: var(--accent); }
 .bar i.over { background-color: var(--warning); }
 
-.capLegend { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 9px; font-size: .68rem; color: var(--text-dim); }
-.capLegend span { display: flex; align-items: center; gap: 5px; }
-.dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
+.capLegend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: .75rem; color: var(--text-secondary); }
+.capLegend span { display: flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
 .dotDone { background-color: var(--accent-deep); }
 .dotAhead { background-color: var(--accent); }
 .dotFree { background-color: var(--bg-inset); box-shadow: inset 0 0 0 1px var(--bg-chip); }
@@ -371,31 +535,36 @@ button {
 .nudge {
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 12px;
     width: 100%;
     padding: 12px 14px;
-    margin-top: 10px;
-    border-radius: 14px;
+    margin-top: 4px;
+    border-radius: 16px;
     background-color: var(--accent-tint);
     box-shadow: inset 0 0 0 1px var(--accent-line);
 }
 .nudge:active { transform: scale(.99); }
 .nudge .nIcon {
-    width: 30px;
-    height: 30px;
-    border-radius: 9px;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
     background-color: var(--accent);
     color: var(--text-bright);
     display: grid;
     place-items: center;
     flex: 0 0 auto;
 }
-.nudge .nIcon svg { width: 15px; height: 15px; }
+.nudge .nIcon svg { width: 18px; height: 18px; }
 .nudge .nText { min-width: 0; }
-.nudge .nText b { display: block; font-size: .84rem; font-weight: 700; color: var(--text-bright); }
-.nudge .nText small { display: block; font-size: .74rem; color: var(--accent-soft); margin-top: 2px; }
+.nudge .nText b { display: block; font-size: .9375rem; line-height: 1.35; font-weight: 700; color: var(--text-primary); }
+.nudge .nText small { display: block; font-size: .8125rem; line-height: 1.4; font-weight: 500; color: var(--accent-soft); margin-top: 2px; }
 .nudge .chev { margin-left: auto; color: var(--accent-soft); display: flex; flex: 0 0 auto; }
-.nudge .chev svg { width: 16px; height: 16px; }
+.nudge .chev svg { width: 18px; height: 18px; }
+
+/* My week is one long list that grows at both ends. week.js keeps the view
+   steady itself when a week is added above, so the browser's own scroll
+   anchoring must stay out of it or the two would both correct the jump. */
+.page[data-page="week"] .body { overflow-anchor: none; }
 
 /* The gap between two days has to sit INSIDE the day above. A sticky header
    can only travel to the bottom of its own content box, so padding here would
@@ -424,120 +593,122 @@ button {
        its MARGIN box, so a margin here would stop the header short of the end
        of its own day and hand over to the next one with a gap. */
     margin: 0 -18px;
-    padding: 10px 18px 14px;
+    padding: 12px 18px 12px;
     background-color: var(--bg-app);
 }
 .dayJobs { position: relative; z-index: 1; display: flow-root; }
 .dayJobs > :last-child { margin-bottom: 18px; }
-
-/* Lets the last day be scrolled up to the top of the list, so arriving on
-   today always puts today under the header rather than wherever the content
-   happens to end. Sized from JS to the height of the final day. */
-.weekTail { flex: 0 0 auto; }
 .dayNum {
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
-    background-color: var(--bg-raised);
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background-color: var(--bg-card);
+    box-shadow: inset 0 0 0 1px var(--edge);
     color: var(--text-secondary);
     display: grid;
     place-items: center;
-    font-size: .85rem;
+    font-size: 1.0625rem;
     font-weight: 800;
+    font-variant-numeric: tabular-nums;
     flex: 0 0 auto;
 }
-.dayName { font-size: .86rem; font-weight: 700; color: var(--text-primary); }
-.dayLoad { margin-left: auto; font-size: .72rem; color: var(--text-dim); flex: 0 0 auto; }
+.dayText { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.dayName { font-size: 1.0625rem; line-height: 1.3; font-weight: 800; color: var(--text-primary); }
+.dayLoad { font-size: .8125rem; line-height: 1.4; font-weight: 500; color: var(--text-muted); }
 
 /* The per-day "+". Quiet until you reach for it, so seven of them down the
    page do not read as seven buttons demanding attention. */
 .dayAdd {
     flex: 0 0 auto;
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
     display: grid;
     place-items: center;
     background-color: var(--bg-card);
-    color: var(--text-dim);
+    box-shadow: inset 0 0 0 1px var(--edge);
+    color: var(--text-secondary);
     transition: background-color .15s ease, color .15s ease;
 }
-.dayAdd svg { width: 13px; height: 13px; }
-.dayAdd:hover { background-color: var(--accent); color: var(--text-bright); }
+.dayAdd svg { width: 18px; height: 18px; }
+.dayAdd:hover { background-color: var(--accent); box-shadow: none; color: var(--text-bright); }
 .dayAdd:active { transform: scale(.92); }
-.day.today .dayAdd { background-color: var(--accent-tint); color: var(--accent-soft); }
+.day.today .dayAdd { background-color: var(--accent-tint); box-shadow: none; color: var(--accent-soft); }
 .day.today .dayAdd:hover { background-color: var(--accent); color: var(--text-bright); }
-.day.today .dayNum { background-color: var(--accent); color: var(--text-bright); }
-.day.today .dayName { color: var(--text-bright); }
-.day.past { opacity: .45; }
+.day.today .dayNum { background-color: var(--accent); box-shadow: none; color: var(--text-bright); }
+/* Days already gone step back by colour, not by fading the whole block —
+   a half-transparent card fails contrast and reads as disabled. */
+.day.past .dayNum { background-color: transparent; color: var(--text-muted); }
+.day.past .dayName { color: var(--text-secondary); }
 
+/* The rail is flush with the card's left edge and runs its full height, so a
+   day's list can be scanned by colour. The negative margins pull it out over
+   the card's padding. */
 .job {
     display: flex;
-    gap: 11px;
+    gap: 12px;
     width: 100%;
-    padding: 12px 13px;
+    padding: 14px 14px 14px 0;
     margin-bottom: 8px;
-    border-radius: 13px;
+    border-radius: 16px;
     background-color: var(--bg-card);
+    box-shadow: inset 0 0 0 1px var(--edge-soft);
+    overflow: hidden;
 }
 .job:active { transform: scale(.99); }
-.job .time { flex: 0 0 48px; font-size: .78rem; line-height: 1.4; }
+.job .time { flex: 0 0 44px; font-size: .9375rem; line-height: 1.35; font-variant-numeric: tabular-nums; }
 /* A job with no clock time shows a dash here and says "any time" in a chip,
    rather than wrapping the words into two stacked lines. */
-.job.noTime .time b { color: var(--text-faint); font-weight: 700; }
-.job .time b { display: block; font-weight: 800; color: var(--text-bright); }
-.job .time small { display: block; font-weight: 600; color: var(--text-faint); font-size: .72rem; }
+.job.noTime .time b { color: var(--text-muted); font-weight: 700; }
+.job .time b { display: block; font-weight: 800; color: var(--text-primary); }
+.job .time small { display: block; font-weight: 600; color: var(--text-muted); font-size: .75rem; }
 /* One rail, coloured by status — set from JS as --tone. */
 .job .rail,
 .wcard .rail {
-    flex: 0 0 3px;
-    border-radius: 3px;
+    flex: 0 0 4px;
+    margin: -14px 0;
     background-color: var(--tone, var(--bg-chip));
 }
 .job .meat { flex: 1; min-width: 0; }
-/* Title on the left, status on the right: the status is the one label that
-   says where this job stands, so it gets the corner to itself. */
-.topRow {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 3px;
-}
-.topRow .tagChip, .titleRow .tagChip { flex: 0 0 auto; margin-top: 1px; }
+.topRow { display: block; margin-bottom: 4px; }
 
 .job .jobTitle {
     display: block;
-    flex: 1;
     min-width: 0;
-    font-size: .92rem;
+    font-size: 1rem;
     font-weight: 700;
-    line-height: 1.3;
-    color: var(--text-bright);
+    line-height: 1.35;
+    color: var(--text-primary);
 }
 .job.isDone .jobTitle { color: var(--text-secondary); text-decoration: line-through; text-decoration-color: var(--text-ghost); }
 .job .sub, .wcard .sub {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     flex-wrap: wrap;
     margin: 0;
-    font-size: .77rem;
-    color: var(--text-dim);
+    font-size: .8125rem;
+    line-height: 1.4;
+    font-weight: 500;
+    color: var(--text-secondary);
 }
 .subBit { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
-.subBit svg { width: 11px; height: 11px; opacity: .85; flex: 0 0 auto; }
+.subBit svg { width: 12px; height: 12px; opacity: .8; flex: 0 0 auto; }
+.subBit.place { color: var(--text-muted); }
 .sep { color: var(--text-ghost); }
-.job .chips, .wcard .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.job .chips, .wcard .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.job .chips:empty, .wcard .chips:empty { display: none; }
 
 .emptyDay {
     display: block;
     width: 100%;
+    min-height: 48px;
     padding: 14px;
-    border-radius: 13px;
+    border-radius: 14px;
     border: 1px dashed var(--edge);
     text-align: center;
-    font-size: .78rem;
-    color: var(--text-faint);
+    font-size: .8125rem;
+    color: var(--text-muted);
 }
 .emptyDay:hover { border-color: var(--accent-line); color: var(--accent-soft); }
 
@@ -545,11 +716,12 @@ button {
 .pickRow {
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 12px;
     width: 100%;
-    padding: 11px 12px;
-    margin-bottom: 7px;
-    border-radius: 12px;
+    min-height: 60px;
+    padding: 12px 12px 12px 14px;
+    margin-bottom: 8px;
+    border-radius: 14px;
     background-color: var(--bg-card);
     border: 1px solid var(--edge);
 }
@@ -558,44 +730,44 @@ button {
 .pickMain { flex: 1; min-width: 0; }
 .pickTitle {
     display: block;
-    font-size: .9rem;
+    font-size: .9375rem;
     font-weight: 700;
-    line-height: 1.3;
-    color: var(--text-bright);
+    line-height: 1.35;
+    color: var(--text-primary);
 }
 .pickSub {
     display: block;
     margin-top: 2px;
-    font-size: .76rem;
-    color: var(--text-dim);
+    font-size: .8125rem;
+    color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .pickChip {
     flex: 0 0 auto;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-size: .62rem;
-    font-weight: 800;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    background-color: var(--bg-chip);
-    color: var(--text-muted);
+    height: 24px;
+    padding: 0 9px;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 24px;
+    background-color: var(--bg-raised);
+    color: var(--text-secondary);
 }
-.pickChip.urgent { background-color: var(--accent); color: var(--text-bright); }
+.pickChip.urgent { background-color: var(--accent); color: var(--text-bright); font-weight: 800; }
 .pickChip.high { background-color: var(--warning-tint); color: var(--warning); }
 .pickPlus {
     flex: 0 0 auto;
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
     display: grid;
     place-items: center;
     background-color: var(--accent-tint);
     color: var(--accent-soft);
 }
-.pickPlus svg { width: 13px; height: 13px; }
+.pickPlus svg { width: 16px; height: 16px; }
 
 /* ============================================================
    Page 2 — available work
@@ -604,46 +776,48 @@ button {
     position: relative;
     display: flex;
     align-items: center;
-    margin-top: 11px;
+    margin-top: 14px;
 }
 .searchWrap.bare { margin-top: 0; }
 .searchIcon {
     position: absolute;
-    left: 12px;
-    width: 15px;
-    height: 15px;
-    color: var(--text-faint);
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
     pointer-events: none;
 }
 .searchInp {
     width: 100%;
-    padding: 11px 36px 11px 35px;
+    height: 48px;
+    padding: 0 48px 0 42px;
     border: 1px solid var(--edge);
-    border-radius: 12px;
+    border-radius: 14px;
     background-color: var(--bg-card);
-    font-size: .88rem;
+    font-size: .9375rem;
+    font-weight: 500;
     outline: none;
     -webkit-appearance: none;
 }
-.searchInp::placeholder { color: var(--text-faint); }
+.searchInp::placeholder { color: var(--text-muted); }
 .searchInp:focus { border-color: var(--accent); background-color: var(--bg-raised); }
 .searchInp::-webkit-search-cancel-button { display: none; }
 .searchClear {
     position: absolute;
-    right: 6px;
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-    color: var(--text-faint);
-    font-size: 1.2rem;
+    right: 2px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    color: var(--text-muted);
+    font-size: 1.4rem;
     line-height: 1;
     text-align: center;
 }
 
 .filterRow {
     display: flex;
-    gap: 7px;
-    margin: 11px -18px 0;
+    gap: 8px;
+    margin: 12px -18px 0;
     padding: 0 18px 4px;
     overflow-x: auto;
     scrollbar-width: none;
@@ -651,83 +825,103 @@ button {
 .filterRow::-webkit-scrollbar { display: none; }
 .fchip {
     flex: 0 0 auto;
-    padding: 7px 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 40px;
+    padding: 0 14px;
     border-radius: 999px;
-    border: 1px solid transparent;
     background-color: var(--bg-card);
+    box-shadow: inset 0 0 0 1px var(--edge);
     color: var(--text-secondary);
-    font-size: .76rem;
+    font-size: .8125rem;
     font-weight: 700;
     white-space: nowrap;
 }
-.fchip.on { background-color: var(--accent); color: var(--text-bright); }
-.fchip .cnt { opacity: .6; font-weight: 600; margin-left: 4px; }
+/* Selected goes white, not red: red is kept for "act on this". */
+.fchip.on { background-color: var(--text-primary); box-shadow: none; color: var(--text-on-light); }
+.fchip .cnt { font-weight: 600; color: var(--text-muted); }
+.fchip.on .cnt { color: var(--text-on-light-soft); }
 
-.sortRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 12px 2px 10px; }
-.sortRow span { font-size: .76rem; color: var(--text-dim); }
-.sortRow b { color: var(--text-secondary); }
+.sortRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 2px 6px; }
+.sortRow span { font-size: .8125rem; color: var(--text-muted); }
+.sortRow b { color: var(--text-primary); }
+.sortRow .iconBtn { background-color: transparent; box-shadow: none; color: var(--text-secondary); }
 
 .wcard {
     display: flex;
-    gap: 12px;
-    padding: 13px;
-    margin-bottom: 9px;
-    border-radius: 14px;
+    gap: 14px;
+    padding: 14px 14px 0 0;
+    margin-bottom: 10px;
+    border-radius: 16px;
     background-color: var(--bg-card);
+    box-shadow: inset 0 0 0 1px var(--edge-soft);
+    overflow: hidden;
 }
+.wcard .rail { margin: -14px 0 0; }
 
 .wcard .meat { flex: 1; min-width: 0; }
-.wcard .titleRow { display: flex; align-items: flex-start; gap: 8px; width: 100%; }
+.wcard .titleRow { display: block; width: 100%; }
 .wcard .wTitle {
-    flex: 1;
-    font-size: .95rem;
+    display: block;
+    font-size: 1rem;
     font-weight: 700;
-    line-height: 1.3;
-    color: var(--text-bright);
+    line-height: 1.35;
+    color: var(--text-primary);
 }
-.wcard .sub { margin-top: 5px; }
+.wcard .sub { margin-top: 4px; }
 .prio {
     flex: 0 0 auto;
     margin-top: 1px;
-    padding: 3px 7px;
-    border-radius: 7px;
-    background-color: var(--bg-chip);
-    color: var(--text-muted);
-    font-size: .62rem;
-    font-weight: 800;
-    letter-spacing: .06em;
-    text-transform: uppercase;
+    height: 24px;
+    padding: 0 9px;
+    border-radius: 999px;
+    background-color: var(--bg-raised);
+    color: var(--text-secondary);
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 24px;
 }
-.prio.urgent { background-color: var(--accent); color: var(--text-bright); }
+.prio.urgent { background-color: var(--accent); color: var(--text-bright); font-weight: 800; }
 .prio.high { background-color: var(--warning-tint); color: var(--warning); }
 
-.wcard .foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 11px; }
-.wcard .age { font-size: .7rem; color: var(--text-faint); }
+.wcard .foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 6px 0;
+    border-top: 1px solid var(--edge-soft);
+}
+.wcard .age { font-size: .8125rem; color: var(--text-muted); }
 .planBtn {
     flex: 0 0 auto;
-    padding: 7px 15px;
-    border-radius: 10px;
-    background-color: var(--accent);
-    color: var(--text-bright);
-    font-size: .78rem;
+    height: 44px;
+    padding: 0 18px;
+    border-radius: 12px;
+    background-color: var(--accent-tint);
+    box-shadow: inset 0 0 0 1px var(--accent-line);
+    color: var(--accent-soft);
+    font-size: .875rem;
     font-weight: 800;
 }
 .planBtn:active { transform: scale(.96); }
-.planBtn.quiet { background-color: var(--bg-raised); color: var(--text-secondary); }
+.planBtn.quiet { background-color: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--edge); color: var(--text-primary); }
 
 .incomplete {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 9px;
-    padding: 8px 10px;
-    border-radius: 10px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
     background-color: var(--bg-inset);
-    font-size: .73rem;
+    font-size: .8125rem;
     line-height: 1.4;
-    color: var(--text-dim);
+    color: var(--text-muted);
 }
-.incomplete svg { width: 13px; height: 13px; color: var(--warning); flex: 0 0 auto; }
+.incomplete svg { width: 14px; height: 14px; color: var(--warning); flex: 0 0 auto; }
 .incomplete b { color: var(--text-secondary); font-weight: 700; }
 
 /* ============================================================
@@ -736,50 +930,53 @@ button {
 .prevWork {
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 12px;
     width: 100%;
-    padding: 13px 14px;
+    min-height: 64px;
+    padding: 12px 14px;
     margin: 6px 0 16px;
-    border-radius: 14px;
+    border-radius: 16px;
     background-color: var(--bg-card);
     box-shadow: inset 0 0 0 1px var(--edge);
 }
 .prevWork:hover { box-shadow: inset 0 0 0 1px var(--accent-line); }
 .prevWork:active { transform: scale(.99); }
 .prevIcon {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     background-color: var(--bg-raised);
     color: var(--success);
     display: grid;
     place-items: center;
     flex: 0 0 auto;
 }
-.prevIcon svg { width: 17px; height: 17px; }
+.prevIcon svg { width: 20px; height: 20px; }
 .prevText { flex: 1; min-width: 0; }
-.prevText b { display: block; font-size: .92rem; font-weight: 700; color: var(--text-bright); }
-.prevText small { display: block; margin-top: 2px; font-size: .76rem; color: var(--text-dim); }
-.prevChev { width: 15px; height: 15px; flex: 0 0 auto; color: var(--text-faint); }
+.prevText b { display: block; font-size: .9375rem; font-weight: 700; color: var(--text-primary); }
+.prevText small { display: block; margin-top: 2px; font-size: .8125rem; color: var(--text-muted); }
+.prevChev { width: 18px; height: 18px; flex: 0 0 auto; color: var(--text-muted); }
 
 .clientCard {
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 12px;
     width: 100%;
-    padding: 12px 13px;
+    min-height: 64px;
+    padding: 12px 14px;
     margin-bottom: 8px;
-    border-radius: 13px;
+    border-radius: 16px;
     background-color: var(--bg-card);
+    box-shadow: inset 0 0 0 1px var(--edge-soft);
 }
 .clientCard:hover { box-shadow: inset 0 0 0 1px var(--accent-line); }
 .clientCard:active { transform: scale(.99); }
 .clientCardText { flex: 1; min-width: 0; }
 .clientCardText b {
     display: block;
-    font-size: .93rem;
+    font-size: .9375rem;
     font-weight: 700;
-    color: var(--text-bright);
+    color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -787,26 +984,26 @@ button {
 .clientCardText small {
     display: block;
     margin-top: 1px;
-    font-size: .76rem;
-    color: var(--text-dim);
+    font-size: .8125rem;
+    color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.clientCardStats { display: block; margin-top: 4px; font-size: .72rem; color: var(--text-faint); }
+.clientCardStats { display: block; margin-top: 4px; font-size: .75rem; color: var(--text-muted); }
 /* Jobs still open for this client: the one number worth pulling out. */
 .clientCardOpen {
     flex: 0 0 auto;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
-    border-radius: 11px;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 13px;
     background-color: var(--accent-tint);
     box-shadow: inset 0 0 0 1px var(--accent-line);
     color: var(--accent-soft);
-    font-size: .7rem;
+    font-size: .75rem;
     font-weight: 800;
-    line-height: 22px;
+    line-height: 26px;
     text-align: center;
 }
 
@@ -817,20 +1014,20 @@ button {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 11px 10px;
-    border-radius: 12px;
+    padding: 12px 10px;
+    border-radius: 14px;
     background-color: var(--bg-card);
     text-align: center;
 }
-.clientStat b { font-size: 1.05rem; font-weight: 800; color: var(--text-bright); }
-.clientStat small { font-size: .68rem; color: var(--text-dim); }
+.clientStat b { font-size: 1.125rem; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.clientStat small { font-size: .75rem; color: var(--text-muted); }
 .clientAddress {
     display: flex;
     margin: 0 0 14px;
-    padding: 10px 12px;
-    border-radius: 11px;
+    padding: 12px 14px;
+    border-radius: 12px;
     background-color: var(--bg-inset);
-    font-size: .8rem;
+    font-size: .875rem;
     color: var(--text-secondary);
 }
 
@@ -840,9 +1037,10 @@ button {
     align-items: center;
     gap: 10px;
     width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 7px;
-    border-radius: 11px;
+    min-height: 56px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    border-radius: 14px;
     background-color: var(--bg-card);
 }
 .jobLine:hover { box-shadow: inset 0 0 0 1px var(--accent-line); }
@@ -850,28 +1048,29 @@ button {
 .jobLineMain { flex: 1; min-width: 0; }
 .jobLineTitle {
     display: block;
-    font-size: .87rem;
+    font-size: .9375rem;
     font-weight: 700;
-    line-height: 1.3;
+    line-height: 1.35;
     color: var(--text-primary);
 }
 .jobLineSub {
     display: block;
     margin-top: 2px;
-    font-size: .74rem;
-    color: var(--text-dim);
+    font-size: .8125rem;
+    color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .jobLineAside {
     flex: 0 0 auto;
-    font-size: .76rem;
+    font-size: .8125rem;
     font-weight: 700;
-    color: var(--text-faint);
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
 }
 
-.archiveSheet .jobLine { margin-bottom: 7px; }
+.archiveSheet .jobLine { margin-bottom: 8px; }
 .archiveSheet > [data-role="list"] { margin-top: 12px; }
 
 /* ============================================================
@@ -879,142 +1078,181 @@ button {
    ============================================================ */
 .hint {
     display: flex;
-    gap: 10px;
-    margin: 6px 0 18px;
-    padding: 11px 13px;
-    border-radius: 13px;
-    background-color: var(--bg-inset);
-    font-size: .78rem;
-    line-height: 1.5;
-    color: var(--text-dim);
+    align-items: flex-start;
+    gap: 12px;
+    margin: 6px 0 20px;
+    padding: 14px 6px 14px 14px;
+    border-radius: 16px;
+    background-color: var(--bg-card);
+    box-shadow: inset 0 0 0 1px var(--edge);
+    font-size: .875rem;
+    line-height: 1.45;
+    color: var(--text-secondary);
 }
-.hint svg { width: 14px; height: 14px; color: var(--accent-soft); flex: 0 0 auto; margin-top: 3px; }
-.hint b { color: var(--text-secondary); }
+.hint svg { width: 20px; height: 20px; color: var(--accent-soft); flex: 0 0 auto; margin-top: 0; }
+.hint b { color: var(--text-primary); }
+.hintClose {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    margin: -12px -2px -12px 0;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: var(--text-muted);
+}
+.hint .hintClose svg { width: 16px; height: 16px; color: currentColor; }
 
-.field { margin-bottom: 17px; }
+.field { margin-bottom: 20px; }
 .lbl {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin: 0 0 7px;
-    font-size: .76rem;
+    margin: 0 0 8px;
+    font-size: .875rem;
     font-weight: 700;
-    color: var(--text-secondary);
+    color: var(--text-primary);
 }
-.lbl .req { color: var(--accent); font-size: .95rem; line-height: 1; }
-.lbl .opt { margin-left: auto; font-weight: 600; font-size: .7rem; color: var(--text-faint); }
+.lbl .req { color: var(--accent-soft); font-size: 1rem; line-height: 1; }
+.lbl .opt { font-weight: 500; font-size: .8125rem; color: var(--text-muted); }
+.lbl .opt::before { content: '· '; }
 
 .inp {
     width: 100%;
-    padding: 13px 14px;
+    min-height: 52px;
+    padding: 14px 16px;
     border: 1px solid var(--edge);
-    border-radius: 12px;
+    border-radius: 14px;
     background-color: var(--bg-card);
     color: var(--text-primary);
-    font-size: .9rem;
+    font-size: .9375rem;
+    font-weight: 500;
     outline: none;
     -webkit-appearance: none;
 }
-.inp::placeholder { color: var(--text-faint); }
-.inp:focus { border-color: var(--accent); background-color: var(--bg-raised); }
-.inp.big { padding: 15px 14px; font-size: 1.02rem; font-weight: 700; }
+.inp::placeholder { color: var(--text-muted); }
+.inp:focus {
+    border-color: var(--accent);
+    background-color: var(--bg-raised);
+    box-shadow: 0 0 0 4px var(--accent-tint);
+}
+.inp.big { min-height: 56px; padding: 15px 16px; font-size: 1.0625rem; font-weight: 600; }
 .inp.bad { border-color: var(--accent); }
 textarea.inp { resize: none; line-height: 1.5; }
 
-.errNote { margin: 7px 0 0; font-size: .74rem; font-weight: 700; color: var(--accent-soft); }
+.errNote { margin: 8px 0 0; font-size: .8125rem; font-weight: 700; color: var(--accent-soft); }
 .inpNote {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin: 7px 0 0;
-    font-size: .71rem;
-    color: var(--accent-soft);
+    margin: 8px 0 0;
+    font-size: .8125rem;
+    color: var(--text-muted);
 }
-.inpNote svg { width: 11px; height: 11px; flex: 0 0 auto; }
-.inpNote.plain { color: var(--text-dim); }
+.inpNote svg { width: 13px; height: 13px; flex: 0 0 auto; color: var(--success); }
+.inpNote.plain { color: var(--text-muted); }
 
 .clientPick, .clientEmpty, .clientRow, .newClientRow {
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 12px;
     width: 100%;
-    padding: 11px 13px;
-    border-radius: 12px;
+    min-height: 56px;
+    padding: 10px 14px;
+    border-radius: 14px;
     background-color: var(--bg-card);
     border: 1px solid var(--edge);
 }
-.clientPick { border-color: var(--accent-line); }
-.clientEmpty { color: var(--text-dim); font-size: .88rem; font-weight: 700; border-style: dashed; }
-.clientEmpty svg { width: 16px; height: 16px; flex: 0 0 auto; }
+.clientPick { min-height: 64px; padding-right: 2px; }
+.clientEmpty { color: var(--text-secondary); font-size: .9375rem; font-weight: 700; border-style: dashed; border-color: var(--text-ghost); }
+.clientEmpty svg { width: 18px; height: 18px; flex: 0 0 auto; }
 .clientEmpty:hover { color: var(--accent-soft); border-color: var(--accent-line); }
 
 .avatar {
-    width: 33px;
-    height: 33px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     background-color: var(--bg-slate);
-    color: var(--text-bright);
+    color: var(--text-primary);
     display: grid;
     place-items: center;
-    font-size: .76rem;
+    font-size: .875rem;
     font-weight: 800;
     flex: 0 0 auto;
 }
-.avatar.plus { background-color: var(--accent); font-size: 1.1rem; font-weight: 700; }
+.avatar.plus { background-color: var(--accent); color: var(--text-bright); font-size: 1.2rem; font-weight: 700; }
 .clientText { min-width: 0; flex: 1; }
-.clientText b { display: block; font-size: .88rem; font-weight: 700; color: var(--text-bright); }
+.clientText b { display: block; font-size: .9375rem; font-weight: 700; color: var(--text-primary); }
 .clientText small {
     display: block;
     margin-top: 1px;
-    font-size: .73rem;
-    font-weight: 400;
-    color: var(--text-dim);
+    font-size: .8125rem;
+    font-weight: 500;
+    color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.clientPick .x { margin-left: auto; padding: 0 4px; color: var(--text-faint); font-size: 1.15rem; line-height: 1; flex: 0 0 auto; }
+.clientPick .x {
+    margin-left: auto;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: var(--text-muted);
+    font-size: 1.4rem;
+    line-height: 1;
+    flex: 0 0 auto;
+}
 
-.quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.quick { display: flex; flex-wrap: wrap; gap: 8px; }
 .qchip {
-    padding: 7px 13px;
+    height: 40px;
+    padding: 0 14px;
     border: 1px solid var(--edge);
-    border-radius: 999px;
+    border-radius: 12px;
     background-color: var(--bg-card);
     color: var(--text-secondary);
-    font-size: .76rem;
+    font-size: .875rem;
     font-weight: 700;
 }
-.qchip.on { background-color: var(--accent); border-color: var(--accent); color: var(--text-bright); }
+.qchip.on { background-color: var(--text-primary); border-color: var(--text-primary); color: var(--text-on-light); }
 
-.customRow { display: flex; align-items: center; gap: 9px; margin-top: 8px; }
+.customRow { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 .customRow .inp { flex: 1; }
-.customRow .unit { font-size: .8rem; font-weight: 700; color: var(--text-dim); flex: 0 0 auto; }
+.customRow .unit { font-size: .875rem; font-weight: 700; color: var(--text-muted); flex: 0 0 auto; }
 
-.seg { display: flex; gap: 4px; padding: 4px; border-radius: 13px; background-color: var(--bg-inset); }
+.seg {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 14px;
+    background-color: var(--bg-card);
+    box-shadow: inset 0 0 0 1px var(--edge);
+}
 .seg button {
     flex: 1;
-    padding: 9px 0;
+    height: 40px;
     border-radius: 10px;
     text-align: center;
-    font-size: .78rem;
+    font-size: .875rem;
     font-weight: 700;
-    color: var(--text-dim);
+    color: var(--text-secondary);
 }
-.seg button.on { background-color: var(--bg-raised); color: var(--text-primary); }
+.seg button.on { background-color: var(--text-primary); color: var(--text-on-light); font-weight: 800; }
 .seg button.on[data-p="high"] {
     background-color: var(--warning-tint);
     color: var(--warning);
     box-shadow: inset 0 0 0 1px var(--warning-line);
 }
 .seg button.on[data-p="urgent"] {
-    background-color: var(--accent-deep);
+    background-color: var(--accent);
     color: var(--text-bright);
-    box-shadow: inset 0 0 0 1px var(--accent);
 }
 
-.actions { display: flex; flex-direction: column; gap: 9px; margin-top: 22px; }
-.rowBtns { display: flex; gap: 9px; }
+.actions { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.rowBtns { display: flex; gap: 10px; }
 .rowBtns .btn { flex: 1; }
 .btn {
     display: flex;
@@ -1022,20 +1260,23 @@ textarea.inp { resize: none; line-height: 1.5; }
     justify-content: center;
     gap: 8px;
     width: 100%;
-    padding: 15px;
+    min-height: 52px;
+    padding: 14px;
     border-radius: 14px;
-    font-size: .9rem;
+    font-size: .9375rem;
     font-weight: 800;
 }
-.btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.btn svg { width: 16px; height: 16px; flex: 0 0 auto; }
 .btn:active { transform: scale(.98); }
 .btn.primary { background-color: var(--accent); color: var(--text-bright); }
-.btn.outline { color: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent-line); }
-.btn.quiet { padding: 13px; background-color: var(--bg-raised); color: var(--text-secondary); font-size: .85rem; }
-.btn.danger { padding: 13px; background-color: transparent; color: var(--accent-soft); font-size: .85rem; }
+/* The second choice next to a primary button: neutral, so only one red
+   button is ever on screen. */
+.btn.outline { background-color: var(--bg-raised); color: var(--text-primary); box-shadow: inset 0 0 0 1px var(--edge); }
+.btn.quiet { min-height: 48px; padding: 12px; background-color: var(--bg-raised); color: var(--text-primary); font-size: .875rem; }
+.btn.danger { min-height: 48px; padding: 12px; background-color: transparent; color: var(--accent-soft); font-size: .875rem; }
 
 /* ============================================================
-   Bottom nav — Planium's five slots with the raised centre
+   Bottom nav — five slots, Add work in the middle
    ============================================================ */
 /* Pinned to the viewport rather than sitting in the page flow, so it never
    travels with a scroll or a keyboard. Centred on a wide screen to stay under
@@ -1051,21 +1292,32 @@ textarea.inp { resize: none; line-height: 1.5; }
     height: calc(var(--nav-h) + var(--safe-bottom));
     padding-bottom: var(--safe-bottom);
     background-color: var(--bg-deep);
+    border-top: 1px solid var(--edge);
 }
-.nav hr { height: 2px; margin: 0 0 11px; border: none; background-color: var(--bg-chip); }
-.navRow { display: flex; justify-content: space-between; }
+.nav hr { display: none; }
+.navRow { display: flex; justify-content: space-between; padding: 8px 4px 0; }
 .navItem {
     position: relative;
     width: 20%;
+    min-height: 56px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
-    color: var(--text-secondary);
+    gap: 4px;
+    color: var(--text-muted);
 }
-.navItem svg { width: 24px; height: 24px; }
-.navItem p { margin: 0; font-size: .68rem; font-weight: 700; }
-.navItem.on { color: var(--accent); }
+/* The padding turns the icon into the pill that marks the current page. */
+.navItem svg {
+    width: 22px;
+    height: 22px;
+    padding: 5px 17px;
+    box-sizing: content-box;
+    border-radius: 999px;
+    transition: background-color .15s ease, color .15s ease;
+}
+.navItem p { margin: 0; font-size: .75rem; line-height: 16px; font-weight: 700; }
+.navItem.on { color: var(--text-primary); }
+.navItem.on svg { background-color: var(--accent-tint); color: var(--accent-soft); }
 .navItem.soon { color: var(--text-ghost); }
 
 .soonTag {
@@ -1075,61 +1327,64 @@ textarea.inp { resize: none; line-height: 1.5; }
     padding: 1px 4px;
     border-radius: 4px;
     background-color: var(--bg-chip);
-    color: var(--text-dim);
-    font-size: .5rem;
+    color: var(--text-secondary);
+    font-size: .75rem;
     font-weight: 800;
     letter-spacing: .06em;
 }
 .navBadge {
     position: absolute;
-    top: -4px;
-    right: 14px;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
-    border-radius: 8px;
+    top: -2px;
+    right: calc(50% - 32px);
+    z-index: 1;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    border: 2px solid var(--bg-deep);
     background-color: var(--accent);
     color: var(--text-bright);
-    font-size: .6rem;
+    font-size: .6875rem;
     font-weight: 800;
-    line-height: 16px;
+    line-height: 14px;
     text-align: center;
 }
 
-.navCenter { position: relative; width: 20%; }
+/* Add work is always red: it is the one thing this app exists to make easy. */
+.navCenter {
+    position: relative;
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
 .plusBtn {
-    position: absolute;
-    left: 50%;
-    top: -26px;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 60px;
-    border-radius: 30px;
-    background-color: var(--bg-deep);
-    color: var(--text-secondary);
+    position: relative;
+    width: 56px;
+    height: 32px;
+    border-radius: 999px;
+    background-color: var(--accent);
+    color: var(--text-bright);
     display: grid;
     place-items: center;
-    box-shadow: 0 0 0 6px var(--bg-app);
+    box-shadow: 0 6px 16px var(--accent-glow);
 }
-.plusBtn svg { width: 25px; height: 25px; }
-.plusBtn:active { transform: translateX(-50%) scale(.94); }
+/* The pill is only 32px tall, so the tap area reaches down over its label. */
+.plusBtn::after { content: ''; position: absolute; inset: -8px -10px -24px; }
+.plusBtn svg { width: 22px; height: 22px; }
+.plusBtn:active { transform: scale(.94); }
 .plusLbl {
-    position: absolute;
-    left: 0;
-    top: 41px;
-    width: 100%;
     margin: 0;
     text-align: center;
-    font-size: .68rem;
+    font-size: .75rem;
+    line-height: 16px;
     font-weight: 700;
     color: var(--text-secondary);
 }
-.navCenter.on .plusBtn {
-    background-color: var(--accent);
-    color: var(--text-bright);
-    box-shadow: 0 0 0 6px var(--bg-app), 0 6px 18px var(--accent-glow);
-}
-.navCenter.on .plusLbl { color: var(--accent); }
+.navCenter.on .plusBtn { box-shadow: 0 0 0 3px var(--accent-line), 0 6px 16px var(--accent-glow); }
+.navCenter.on .plusLbl { color: var(--text-primary); }
 
 /* ============================================================
    Sheets
@@ -1152,9 +1407,9 @@ textarea.inp { resize: none; line-height: 1.5; }
     max-height: 92dvh;
     display: flex;
     flex-direction: column;
-    border-radius: 22px 22px 0 0;
+    border-radius: 24px 24px 0 0;
     background-color: var(--bg-deep);
-    box-shadow: var(--shadow-sheet);
+    box-shadow: var(--shadow-sheet), inset 0 1px 0 var(--edge);
     transform: translate(-50%, 100%);
     transition: transform .26s cubic-bezier(.22, 1, .36, 1);
 }
@@ -1168,37 +1423,37 @@ textarea.inp { resize: none; line-height: 1.5; }
     padding: 8px 18px calc(20px + var(--safe-bottom));
 }
 .grabber {
-    width: 38px;
+    width: 40px;
     height: 4px;
-    margin: 0 auto 10px;
+    margin: 0 auto 12px;
     border-radius: 3px;
-    background-color: var(--bg-chip);
+    background-color: var(--text-ghost);
     flex: 0 0 auto;
 }
-.sheetHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex: 0 0 auto; }
-.sheetHead h2 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-bright); }
-.sheetSub { margin: 4px 0 0; font-size: .8rem; color: var(--text-dim); flex: 0 0 auto; }
+.sheetHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: 0 0 auto; }
+.sheetHead h2 { margin: 0; font-size: 1.25rem; line-height: 1.3; font-weight: 800; color: var(--text-primary); }
+.sheetSub { margin: 4px 0 0; font-size: .875rem; color: var(--text-muted); flex: 0 0 auto; }
 .sheetBody {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
-    margin-top: 14px;
+    margin-top: 16px;
     scrollbar-width: none;
 }
 .sheetBody::-webkit-scrollbar { display: none; }
 
 /* --- plan sheet --- */
 .planJob {
-    margin: 0 0 15px;
-    padding: 11px 13px;
-    border-radius: 12px;
+    margin: 0 0 16px;
+    padding: 14px 16px;
+    border-radius: 14px;
     background-color: var(--bg-card);
-    font-size: .9rem;
+    font-size: .9375rem;
     font-weight: 700;
-    color: var(--text-bright);
+    color: var(--text-primary);
 }
-.weekNav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
-.weekNavLabel { font-size: .78rem; font-weight: 700; color: var(--text-secondary); }
+.weekNav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.weekNavLabel { font-size: .875rem; font-weight: 700; color: var(--text-secondary); }
 
 .dayChips { display: flex; gap: 6px; margin: 0 -18px; padding: 0 18px 4px; overflow-x: auto; scrollbar-width: none; }
 .dayChips::-webkit-scrollbar { display: none; }
@@ -1207,22 +1462,23 @@ textarea.inp { resize: none; line-height: 1.5; }
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1px;
-    min-width: 54px;
-    padding: 9px 8px;
+    gap: 2px;
+    min-width: 56px;
+    padding: 10px 8px;
     border: 1px solid var(--edge);
-    border-radius: 12px;
+    border-radius: 14px;
     background-color: var(--bg-card);
     text-align: center;
 }
-.dayChip b { font-size: .74rem; font-weight: 700; color: var(--text-secondary); }
-.dayChip small { font-size: .9rem; font-weight: 800; color: var(--text-bright); }
-.dayChip i { font-size: .62rem; font-style: normal; color: var(--text-faint); }
-.dayChip.on { background-color: var(--accent); border-color: var(--accent); }
-.dayChip.on b, .dayChip.on small, .dayChip.on i { color: var(--text-bright); }
-.dayChip.isToday { border-color: var(--accent-line); }
+.dayChip b { font-size: .75rem; font-weight: 600; color: var(--text-muted); }
+.dayChip small { font-size: 1rem; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.dayChip i { font-size: .75rem; font-style: normal; color: var(--text-muted); }
+/* the picked day goes white, like every other choice */
+.dayChip.on { background-color: var(--text-primary); border-color: var(--text-primary); }
+.dayChip.on b, .dayChip.on small, .dayChip.on i { color: var(--text-on-light); }
+.dayChip.isToday { border-color: var(--accent); }
 
-.twoCol { display: flex; gap: 11px; }
+.twoCol { display: flex; gap: 12px; }
 .twoCol .field { flex: 1; }
 .twoCol .customRow { margin-top: 0; }
 
@@ -1231,37 +1487,38 @@ textarea.inp { resize: none; line-height: 1.5; }
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 9px 11px;
-    border-radius: 10px;
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 12px;
     background-color: var(--bg-card);
 }
-.previewTime { flex: 0 0 auto; font-size: .74rem; font-weight: 800; color: var(--text-secondary); }
+.previewTime { flex: 0 0 auto; font-size: .8125rem; font-weight: 800; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .previewTitle {
     flex: 1;
     min-width: 0;
-    font-size: .8rem;
-    color: var(--text-dim);
+    font-size: .875rem;
+    color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .previewRow.ghost { background-color: transparent; border: 1px dashed var(--edge); justify-content: center; }
-.previewRow.ghost .previewTitle { flex: 0 0 auto; text-align: center; }
+.previewRow.ghost .previewTitle { flex: 0 0 auto; text-align: center; color: var(--text-muted); }
 
 .clashNote {
     display: flex;
     align-items: center;
     gap: 8px;
     margin: 0;
-    padding: 10px 12px;
-    border-radius: 11px;
+    padding: 12px 14px;
+    border-radius: 12px;
     background-color: var(--warning-tint);
     box-shadow: inset 0 0 0 1px var(--warning-line);
-    font-size: .76rem;
+    font-size: .8125rem;
     font-weight: 600;
     color: var(--warning);
 }
-.clashNote svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.clashNote svg { width: 16px; height: 16px; flex: 0 0 auto; }
 
 /* --- job sheet --- */
 .jobSheetMeta {
@@ -1274,9 +1531,9 @@ textarea.inp { resize: none; line-height: 1.5; }
 /* The schedule block at the top of a job sheet. Boxed and labelled so the
    booking reads as something you can change, not as a caption. */
 .schedBlock {
-    padding: 13px 14px 14px;
+    padding: 14px 16px 16px;
     margin-bottom: 16px;
-    border-radius: 14px;
+    border-radius: 16px;
     background-color: var(--bg-card);
     box-shadow: inset 0 0 0 1px var(--edge);
 }
@@ -1286,20 +1543,20 @@ textarea.inp { resize: none; line-height: 1.5; }
 }
 .schedLabel {
     margin: 0;
-    font-size: .68rem;
+    font-size: .75rem;
     font-weight: 800;
     letter-spacing: .08em;
     text-transform: uppercase;
-    color: var(--text-faint);
+    color: var(--text-muted);
 }
 .schedBlock.isPlanned .schedLabel { color: var(--accent-soft); }
 .schedWhen {
     margin: 4px 0 12px;
-    font-size: 1rem;
+    font-size: 1.0625rem;
     font-weight: 800;
-    color: var(--text-bright);
+    color: var(--text-primary);
 }
-.schedBlock .schedMain { padding: 13px; font-size: .85rem; }
+.schedBlock .schedMain { min-height: 48px; padding: 12px; font-size: .875rem; }
 .schedBlock .rowBtns { margin-top: 8px; }
 
 /* A fold-away section inside a sheet (the client's own details). */
@@ -1309,46 +1566,48 @@ textarea.inp { resize: none; line-height: 1.5; }
     justify-content: space-between;
     gap: 10px;
     width: 100%;
+    min-height: 48px;
     margin-top: 18px;
-    padding: 13px 14px;
-    border-radius: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
     background-color: var(--bg-card);
     color: var(--text-secondary);
-    font-size: .85rem;
+    font-size: .875rem;
     font-weight: 700;
 }
-.detailsToggle svg { width: 15px; height: 15px; flex: 0 0 auto; transition: transform .2s ease; }
-.detailsToggle.open { color: var(--text-bright); }
+.detailsToggle svg { width: 16px; height: 16px; flex: 0 0 auto; transition: transform .2s ease; }
+.detailsToggle.open { color: var(--text-primary); }
 .detailsToggle.open svg { transform: rotate(180deg); }
 
 /* --- client sheet --- */
-.clientList { display: flex; flex-direction: column; gap: 7px; margin-top: 11px; }
-.newClientRow { margin-top: 11px; border-color: var(--accent-line); }
+.clientList { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.newClientRow { margin-top: 12px; border-color: var(--accent-line); }
 .clientRow:hover { border-color: var(--accent-line); }
 
 /* --- menu sheet --- */
-.menuSheet { display: flex; flex-direction: column; gap: 7px; }
+.menuSheet { display: flex; flex-direction: column; gap: 8px; }
 .menuRow {
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 12px;
     /* a <button> sizes to its content, so rows in a plain block container (the
        Profile page) would each come out a different width */
     width: 100%;
-    padding: 13px;
-    border-radius: 12px;
+    min-height: 60px;
+    padding: 12px 14px;
+    border-radius: 14px;
     background-color: var(--bg-card);
     color: var(--text-secondary);
 }
-.menuRow svg { width: 15px; height: 15px; margin-left: auto; flex: 0 0 auto; color: var(--text-faint); }
+.menuRow svg { width: 18px; height: 18px; margin-left: auto; flex: 0 0 auto; color: var(--text-muted); }
 .menuText { min-width: 0; }
-.menuText b { display: block; font-size: .88rem; font-weight: 700; color: var(--text-bright); }
-.menuText small { display: block; margin-top: 2px; font-size: .74rem; color: var(--text-dim); }
+.menuText b { display: block; font-size: .9375rem; font-weight: 700; color: var(--text-primary); }
+.menuText small { display: block; margin-top: 2px; font-size: .8125rem; color: var(--text-muted); }
 
 /* --- confirm sheet --- */
-.confirmSheet p { margin: 0; font-size: .92rem; line-height: 1.55; color: var(--text-primary); }
+.confirmSheet p { margin: 0; font-size: .9375rem; line-height: 1.55; color: var(--text-primary); }
 .confirmSheet .actions { margin-top: 18px; }
-.confirmSheet .btn.danger { background-color: var(--accent); color: var(--text-bright); padding: 15px; font-size: .9rem; }
+.confirmSheet .btn.danger { background-color: var(--accent); color: var(--text-bright); min-height: 52px; padding: 14px; font-size: .9375rem; }
 
 /* ============================================================
    Toast
@@ -1359,13 +1618,13 @@ textarea.inp { resize: none; line-height: 1.5; }
     bottom: calc(var(--nav-h) + 24px + var(--safe-bottom));
     z-index: 300;
     max-width: 86%;
-    padding: 10px 16px;
-    border-radius: 12px;
+    padding: 12px 18px;
+    border-radius: 14px;
     background-color: var(--bg-raised);
-    color: var(--text-bright);
-    font-size: .85rem;
+    color: var(--text-primary);
+    font-size: .875rem;
     font-weight: 600;
-    box-shadow: var(--shadow-toast);
+    box-shadow: var(--shadow-toast), inset 0 0 0 1px var(--edge);
     opacity: 0;
     pointer-events: none;
     transform: translateX(-50%) translateY(12px);
@@ -1408,12 +1667,12 @@ textarea.inp { resize: none; line-height: 1.5; }
 }
 .bootName { display: flex; flex-direction: column; line-height: 1.1; }
 .bootName small {
-    font-family: 'Nunito', sans-serif;
-    font-size: .72rem;
+    font-family: 'Manrope', system-ui, sans-serif;
+    font-size: .75rem;
     font-weight: 700;
     letter-spacing: .14em;
     text-transform: uppercase;
-    color: var(--text-dim);
+    color: var(--text-muted);
     margin-top: 3px;
 }
 
@@ -1436,17 +1695,20 @@ textarea.inp { resize: none; line-height: 1.5; }
     width: 100%;
     max-width: 480px;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px 18px 14px;
+    gap: 10px;
+    padding: 12px 18px;
     background-color: var(--bg-glass);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid var(--divider);
 }
-.pinnedActions .btn { padding: 13px; font-size: .88rem; }
+/* Side by side: Save is the short word, so it gets the narrow red button and
+   "Save & plan it now" takes the rest of the row. */
+.pinnedActions .btn { min-width: 0; padding: 14px 12px; font-size: .9375rem; }
+.pinnedActions .btn.primary { flex: 0 0 120px; }
+.pinnedActions .btn.outline { flex: 1 1 auto; }
 /* The form scrolls behind the pinned bar, so it needs room to clear it. */
-.page[data-page="add"] .body { padding-bottom: 160px; }
+.page[data-page="add"] .body { padding-bottom: 176px; }
 
 /* --- a row that opens a picker (status) --- */
 .pickerRow {
@@ -1454,68 +1716,73 @@ textarea.inp { resize: none; line-height: 1.5; }
     align-items: center;
     gap: 10px;
     width: 100%;
-    padding: 11px 13px;
+    min-height: 56px;
+    padding: 0 12px 0 14px;
     border: 1px solid var(--edge);
-    border-radius: 12px;
+    border-radius: 14px;
     background-color: var(--bg-card);
 }
 .pickerRow:hover { border-color: var(--accent-line); }
-.pickerRow svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--text-faint); margin-left: auto; }
+.pickerRow .tagChip { flex: 0 0 auto; height: 28px; font-size: .8125rem; }
+.pickerRow svg { width: 18px; height: 18px; flex: 0 0 auto; color: var(--text-muted); margin-left: auto; }
 .pickerHint {
     min-width: 0;
-    font-size: .76rem;
-    color: var(--text-dim);
+    font-size: .8125rem;
+    color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 /* --- tags on the form --- */
-.tagRow { display: flex; flex-wrap: wrap; gap: 6px; }
-.tagRow .tagChip { cursor: pointer; }
+.tagRow { display: flex; flex-wrap: wrap; gap: 8px; }
+.tagRow .tagChip { cursor: pointer; height: 40px; padding: 0 14px 0 12px; font-size: .8125rem; }
 .tagAdd {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 5px 11px;
-    border: 1px dashed var(--edge);
-    border-radius: 20px;
-    color: var(--text-dim);
-    font-size: .72rem;
+    gap: 6px;
+    height: 40px;
+    padding: 0 14px 0 11px;
+    border: 1px dashed var(--text-ghost);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-size: .8125rem;
     font-weight: 700;
 }
-.tagAdd svg { width: 11px; height: 11px; }
+.tagAdd svg { width: 14px; height: 14px; }
 .tagAdd:hover { border-color: var(--accent-line); color: var(--accent-soft); }
 
 /* --- the status sheet --- */
-.statusSheet { display: flex; flex-direction: column; gap: 7px; }
+.statusSheet { display: flex; flex-direction: column; gap: 8px; }
 .statusRow {
     display: flex;
     align-items: center;
-    gap: 11px;
-    padding: 12px 13px;
-    border-radius: 12px;
+    gap: 14px;
+    min-height: 60px;
+    padding: 12px 14px;
+    border-radius: 14px;
     background-color: var(--bg-card);
 }
 .statusRow:hover { box-shadow: inset 0 0 0 1px var(--accent-line); }
 .statusText { flex: 1; min-width: 0; }
-.statusText b { display: block; font-size: .9rem; font-weight: 700; color: var(--text-bright); }
-.statusText small { display: block; margin-top: 2px; font-size: .74rem; color: var(--text-dim); }
+.statusText b { display: block; font-size: .9375rem; font-weight: 700; color: var(--text-primary); }
+.statusText small { display: block; margin-top: 2px; font-size: .8125rem; color: var(--text-muted); }
 
 /* --- the tag sheet --- */
-.tagPickList { display: flex; flex-direction: column; gap: 7px; }
+.tagPickList { display: flex; flex-direction: column; gap: 8px; }
 .tagPickRow {
     display: flex;
     align-items: stretch;
-    gap: 7px;
+    gap: 8px;
 }
 .tagPickMain {
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 11px;
-    padding: 12px 13px;
-    border-radius: 12px;
+    gap: 12px;
+    min-height: 52px;
+    padding: 12px 14px;
+    border-radius: 14px;
     background-color: var(--bg-card);
     min-width: 0;
 }
@@ -1523,39 +1790,39 @@ textarea.inp { resize: none; line-height: 1.5; }
 .tagPickName {
     flex: 1;
     min-width: 0;
-    font-size: .9rem;
+    font-size: .9375rem;
     font-weight: 700;
-    color: var(--text-bright);
+    color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .tagPickDrop {
     flex: 0 0 auto;
-    width: 44px;
-    border-radius: 12px;
+    width: 52px;
+    border-radius: 14px;
     background-color: var(--bg-card);
-    color: var(--text-faint);
+    color: var(--text-muted);
     display: grid;
     place-items: center;
 }
-.tagPickDrop svg { width: 15px; height: 15px; }
+.tagPickDrop svg { width: 18px; height: 18px; }
 .tagPickDrop:hover { color: var(--accent-soft); }
 
-.swatchRow { display: flex; flex-wrap: wrap; gap: 9px; }
+.swatchRow { display: flex; flex-wrap: wrap; gap: 8px; }
 .swatch {
-    width: 36px;
-    height: 36px;
-    border-radius: 11px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     display: grid;
     place-items: center;
     background-color: var(--bg-card);
     box-shadow: inset 0 0 0 1px var(--edge);
 }
 .swatch span {
-    width: 20px;
-    height: 20px;
-    border-radius: 7px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
     background-color: var(--tone);
     display: block;
 }
@@ -1566,14 +1833,14 @@ textarea.inp { resize: none; line-height: 1.5; }
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 15px;
+    padding: 16px;
     margin: 6px 0 16px;
-    border-radius: 14px;
+    border-radius: 16px;
     background-color: var(--bg-card);
 }
 .profileAvatar {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 14px;
     background-color: var(--accent);
     color: var(--text-bright);
@@ -1581,33 +1848,21 @@ textarea.inp { resize: none; line-height: 1.5; }
     place-items: center;
     font-family: 'Montserrat', sans-serif;
     font-weight: 800;
-    font-size: .95rem;
+    font-size: 1rem;
     flex: 0 0 auto;
 }
 .profileText { min-width: 0; }
-.profileText b { display: block; font-size: 1rem; font-weight: 800; color: var(--text-bright); }
-.profileText small { display: block; margin-top: 2px; font-size: .78rem; color: var(--text-dim); }
+.profileText b { display: block; font-size: 1.0625rem; font-weight: 800; color: var(--text-primary); }
+.profileText small { display: block; margin-top: 2px; font-size: .8125rem; color: var(--text-muted); }
 
 .statRow { display: flex; gap: 8px; margin-bottom: 16px; }
 
 /* --- export --- */
-.exportIntro { margin: 0 0 14px; font-size: .85rem; line-height: 1.55; color: var(--text-secondary); }
+.exportIntro { margin: 0 0 14px; font-size: .9375rem; line-height: 1.55; color: var(--text-secondary); }
 .exportName {
     margin: 12px 0 0;
-    font-size: .72rem;
-    color: var(--text-faint);
+    font-size: .75rem;
+    color: var(--text-muted);
     text-align: center;
     word-break: break-all;
-}
-
-/* The active status filter wears that status's own colour, which ties the
-   chip to the rails on the cards below it. Tinted rather than filled so it
-   stays readable on every one of the five tones. */
-.fchip.on.toned {
-    background-color: color-mix(in srgb, var(--tone) 22%, transparent);
-    color: var(--tone);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 48%, transparent);
-}
-@supports not (background-color: color-mix(in srgb, red 10%, transparent)) {
-    .fchip.on.toned { background-color: var(--accent); color: var(--text-bright); }
 }

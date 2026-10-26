@@ -618,7 +618,7 @@
         Store.STATUSES.forEach(st => {
             const row = U.clone('tpl-statusRow');
             const rr = U.roles(row);
-            W.chips.paint(rr.dot, st.tone);
+            W.chips.paintStatus(rr.dot, st);
             U.setText(rr.label, st.label);
             U.setText(rr.hint, st.hint);
             U.toggle(rr.mark, st.id === current);

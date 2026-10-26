@@ -1,11 +1,28 @@
-/** Page 1 — the week you committed to. Opens with today at the top. */
+/**
+ * Page 1 — the week you committed to, as one long list of days.
+ *
+ * It opens on today. Scrolling up runs back through the days already gone and
+ * on into earlier weeks; scrolling down runs into the weeks ahead. Another week
+ * is added whenever either end comes into reach, so the list never runs out,
+ * and the header always shows the week whose day is at the top of the list.
+ */
 (function (W) {
     'use strict';
 
     const U = W.util;
     const Store = W.store;
 
-    let section, r, monday, holdScroll = false, pendingScroll = null;
+    let section, r;
+    /* The weeks drawn in the list, as the Monday of the first and of the last. */
+    let firstMonday, lastMonday;
+    /* What the header is showing: a week, and the day of it at the top. */
+    let shownMonday = null, topDay = null;
+    /* A day to bring to the top once the list can be measured. Set when
+       arriving on the page, cleared as soon as the jump has happened. */
+    let pendingJump = null;
+    let scrollQueued = false;
+
+    const thisMonday = () => U.mondayOf(new Date());
 
     /* ---------------- a job on a day ---------------- */
 
@@ -14,12 +31,9 @@
         const cr = U.roles(card);
         if (job.doneAt) card.classList.add('isDone');
 
-        /* The status is the card's main tag: it colours the rail and sits in
-           the top corner on its own. Every other tag goes in the row below. */
-        const status = Store.status(job.status);
-        W.chips.paint(cr.rail, status.tone);
-        W.chips.paint(cr.statusChip, status.tone);
-        U.setText(cr.statusText, status.label);
+        /* The status is the card's main tag: it colours the rail and leads the
+           chip row, so the title gets the card's full width. */
+        W.chips.paint(cr.rail, Store.status(job.status).tone);
 
         /* All three shapes of a slot. A job with no clock time gets a dash and
            an "any time" chip, never the words split over two stacked lines. */
@@ -43,8 +57,6 @@
         U.toggle(cr.locWrap, !!location);
         U.toggle(cr.sep, !!client && !!location);
 
-        /* The rail already carries the status, so it is not repeated as a chip
-           here — only the things the rail cannot say. */
         const extra = [];
         if (!job.planned.start) extra.push(W.chips.plain('Any time'));
         if (job.planned.durationMin != null) extra.push(W.chips.plain(U.duration(job.planned.durationMin)));
@@ -54,7 +66,7 @@
             extra.push(W.chips.plain(dl.text, 'accent'));
         }
 
-        W.chips.fill(cr.chips, job, { status: false, extra: extra });
+        W.chips.fill(cr.chips, job, { extra: extra });
 
         card.addEventListener('click', () => W.sheets.job(job.id, api.render));
         return card;
@@ -82,13 +94,17 @@
         U.setText(br.num, U.dayOfMonth(iso));
         U.setText(br.name, iso === today ? 'Today' : U.dayName(iso));
 
+        // "Today" replaces the day's name, so the line under it says which day
         const jobs = Store.plannedOn(iso);
-        U.setText(br.load, jobs.length ? dayLoadLabel(iso) : 'free');
+        const load = jobs.length ? dayLoadLabel(iso) : 'free';
+        U.setText(br.load, iso === today ? U.dayName(iso) + ' · ' + load : load);
 
-        if (!jobs.length) {
-            br.jobs.appendChild(U.clone('tpl-emptyDay'));
-        } else {
+        if (jobs.length) {
             jobs.forEach(job => br.jobs.appendChild(jobCard(job)));
+        } else if (iso >= today) {
+            // An empty day gone by is just its header: scrolling back through
+            // weeks of "nothing planned" placeholders would be all noise.
+            br.jobs.appendChild(U.clone('tpl-emptyDay'));
         }
 
         // both the header's + and the empty-day placeholder read the date here
@@ -135,126 +151,265 @@
         return el;
     }
 
-    /* ---------------- scrolling ----------------
-       Two jobs here: give the list enough slack past its final day that any
-       day can be brought to the top of the screen, then put today there. */
+    /* ---------------- one week of the list ---------------- */
 
-    /* Looks the tail up rather than taking it as an argument: a second render
-       can land between scheduling this and running it, and we always want to
-       size the tail that is actually on the page. */
-    function sizeTail() {
-        const tail = U.$('.weekTail', r.weekBody);
-        const days = U.$$('.day', r.weekBody);
-        const last = days[days.length - 1];
-        if (!tail || !last) return;
-        /* Just enough that the last day, and nothing more, fills the screen.
-           The list's own bottom padding (which keeps content clear of the
-           navbar) is scrollable too, so it has to come off the tail — without
-           that you scroll a navbar's worth past the last day's header. */
-        const padBottom = parseFloat(getComputedStyle(r.weekBody).paddingBottom) || 0;
-        const room = r.weekBody.clientHeight - last.offsetHeight - padBottom;
-        tail.style.height = Math.max(0, Math.round(room)) + 'px';
+    /** "6 jobs · 19,5u", with the same "+" as a day when a job has no duration. */
+    function weekLoadLabel(load) {
+        if (!load.count) return 'nothing planned';
+        const jobs = U.plural(load.count, 'job', 'jobs');
+        return load.total ? jobs + ' · ' + U.duration(load.total) + (load.unknown ? '+' : '') : jobs;
     }
 
     /**
-     * Put a day at the top of the list. Returns false when the list has no
-     * layout yet — the page is built while #app is still hidden on boot, and
-     * every measurement is zero until it is revealed.
+     * A label saying which week it is and what it holds, then its seven days.
+     * The nudge rides just above today, which is where the page opens, so it
+     * is the first thing on screen without hiding yesterday from a scroll up.
      */
-    function scrollToDay(iso) {
-        const target = U.$('[data-date="' + iso + '"]', r.weekBody);
-        if (!target || !r.weekBody.clientHeight) return false;
+    function weekBlock(monday) {
+        const block = document.createElement('div');
+        block.className = 'weekBlock';
+        block.dataset.week = U.iso(monday);
 
-        const top = target.getBoundingClientRect().top
-            - r.weekBody.getBoundingClientRect().top
-            + r.weekBody.scrollTop;
-        r.weekBody.scrollTop = Math.max(0, top);
+        const days = U.weekDays(monday);
+        const today = U.today();
+        const isThisWeek = U.iso(monday) === U.iso(thisMonday());
+
+        block.appendChild(sectionLabel(isThisWeek ? 'This week' : U.weekLabel(monday),
+            weekLoadLabel(Store.weekLoad(days))));
+
+        days.forEach(iso => {
+            if (iso === today) {
+                const nudge = nudgeCard();
+                if (nudge) block.appendChild(nudge);
+            }
+            block.appendChild(dayBlock(iso));
+        });
+        return block;
+    }
+
+    /* ---------------- scrolling ---------------- */
+
+    function dayEl(iso) {
+        return U.$('.day[data-date="' + iso + '"]', r.weekBody);
+    }
+
+    /** Scroll so `el` sits at the very top of the list. */
+    function scrollToEl(el) {
+        const body = r.weekBody;
+        body.scrollTop = Math.max(0, el.getBoundingClientRect().top
+            - body.getBoundingClientRect().top + body.scrollTop);
+    }
+
+    /** Bring a day to the top — for today, the nudge just above it too. */
+    function jumpTo(iso) {
+        const day = dayEl(iso);
+        if (!day) return false;
+        const before = day.previousElementSibling;
+        scrollToEl(before && before.classList.contains('nudge') ? before : day);
         return true;
     }
 
     /**
-     * Keep trying until the list can actually be measured. Without this the
-     * one attempt made during boot lands on a zero-height list and silently
-     * does nothing.
+     * The day whose header is pinned at the top of the list, and how far its
+     * top edge sits from the list's. A day with only a sliver left on screen
+     * has been scrolled past already.
      */
-    function scrollToDaySoon(iso, triesLeft) {
-        if (scrollToDay(iso)) {
-            pendingScroll = null;
+    function topAnchor() {
+        const body = r.weekBody;
+        if (!body.clientHeight) return null;
+        const top = body.getBoundingClientRect().top;
+        const days = U.$$('.day', body);
+        for (let i = 0; i < days.length; i++) {
+            const rect = days[i].getBoundingClientRect();
+            if (rect.bottom > top + 12) return { iso: days[i].dataset.date, offset: rect.top - top };
+        }
+        return null;
+    }
+
+    /** Put a remembered day back at the same height it was before a redraw. */
+    function restoreAnchor(keep) {
+        const day = dayEl(keep.iso);
+        if (!day) return;
+        const body = r.weekBody;
+        body.scrollTop += day.getBoundingClientRect().top - body.getBoundingClientRect().top - keep.offset;
+    }
+
+    /* A week added above pushes everything down, so the scroll moves with it
+       and nothing on screen shifts. Done by hand, with the browser's own
+       scroll anchoring switched off for this list (see style.css) so the two
+       never both correct the same jump. */
+    function addWeekAbove() {
+        const body = r.weekBody;
+        const before = body.scrollHeight;
+        firstMonday = U.addDays(firstMonday, -7);
+        body.insertBefore(weekBlock(firstMonday), body.firstChild);
+        body.scrollTop += body.scrollHeight - before;
+    }
+
+    function addWeekBelow() {
+        lastMonday = U.addDays(lastMonday, 7);
+        r.weekBody.appendChild(weekBlock(lastMonday));
+    }
+
+    /**
+     * Keep at least a screen of list beyond each end, so a scroll never hits
+     * the edge. Capped per call: a list with no height yet would otherwise
+     * read as "at the top" forever.
+     */
+    function fill() {
+        const body = r.weekBody;
+        const screen = body.clientHeight;
+        if (!screen) return;
+        for (let i = 0; i < 4 && body.scrollTop < screen; i++) addWeekAbove();
+        for (let i = 0; i < 4 && body.scrollHeight - body.scrollTop - screen < screen; i++) addWeekBelow();
+    }
+
+    /**
+     * The header follows the list: the week at the top, its days in the
+     * strip, and the day at the top marked there.
+     */
+    function updateHeader() {
+        const top = topAnchor();
+        if (!top) return;
+
+        const monday = U.mondayOf(U.parseDate(top.iso));
+        if (!shownMonday || U.iso(monday) !== U.iso(shownMonday)) {
+            shownMonday = monday;
+            U.setText(r.weekLabel, U.weekLabel(monday));
+            renderStrip(U.weekDays(monday), U.today());
+            U.toggle(U.$('[data-act="thisWeek"]', section), U.iso(monday) !== U.iso(thisMonday()));
+            topDay = null;
+        }
+        if (top.iso !== topDay) {
+            topDay = top.iso;
+            U.$$('.stripDay', r.weekStrip).forEach(btn => btn.classList.toggle('atTop', btn.dataset.day === topDay));
+        }
+    }
+
+    /**
+     * Once the list can be measured: make any jump that is waiting (or put
+     * the old top day back), top up both ends, and bring the header in line.
+     * Retries for a while, because on boot the page is built while #app is
+     * still hidden and every measurement is zero until it is revealed.
+     */
+    function settle(keep, triesLeft) {
+        if (!r.weekBody.clientHeight) {
+            if (triesLeft > 0) requestAnimationFrame(() => settle(keep, triesLeft - 1));
             return;
         }
-        if (triesLeft <= 0) return;
-        requestAnimationFrame(() => scrollToDaySoon(iso, triesLeft - 1));
+        const jumped = pendingJump;
+        if (pendingJump) {
+            jumpTo(pendingJump);
+            pendingJump = null;
+        } else if (keep) {
+            restoreAnchor(keep);
+        }
+        fill();
+        updateHeader();
+        if (jumped) realignAfterFonts(jumped);
+    }
+
+    /**
+     * On a first visit the list can be laid out before Manrope arrives. When
+     * it swaps in, every line above today changes height and today drifts off
+     * the top — so jump again then, unless the list was scrolled meanwhile.
+     */
+    function realignAfterFonts(iso) {
+        if (!document.fonts || document.fonts.status === 'loaded') return;
+        const landed = r.weekBody.scrollTop;
+        document.fonts.ready.then(() => {
+            if (Math.abs(r.weekBody.scrollTop - landed) > 1) return;
+            jumpTo(iso);
+            fill();
+            updateHeader();
+        });
+    }
+
+    /** Scroll to a week, adding weeks until the list reaches it. */
+    function goToWeek(monday) {
+        while (U.iso(monday) < U.iso(firstMonday)) addWeekAbove();
+        while (U.iso(monday) > U.iso(lastMonday)) addWeekBelow();
+        const block = U.$('.weekBlock[data-week="' + U.iso(monday) + '"]', r.weekBody);
+        if (block) scrollToEl(block);
+        fill();
+        updateHeader();
     }
 
     /* ---------------- render ---------------- */
 
+    /**
+     * Draw every week the list holds. A redraw after an edit keeps the day at
+     * the top where it was; arriving on the page jumps to today instead.
+     */
     function render() {
-        const days = U.weekDays(monday);
-        const today = U.today();
-        const isThisWeek = U.iso(monday) === U.iso(U.mondayOf(new Date()));
-
-        U.setText(r.weekLabel, U.weekLabel(monday));
-        U.toggle(U.$('[data-act="thisWeek"]', section), !isThisWeek);
-
-        const keepScroll = r.weekBody.scrollTop;
+        const keep = pendingJump ? null : topAnchor();
         const body = U.empty(r.weekBody);
-
-        const nudge = nudgeCard();
-        if (nudge) body.appendChild(nudge);
-
-        if (isThisWeek) {
-            const past = days.filter(d => d < today);
-            const ahead = days.filter(d => d >= today);
-            const load = Store.weekLoad(days);
-
-            /* Days already gone fold away once there is work to look at
-               instead — but on an empty week they stay, so the page reads as a
-               week you can fill rather than the days that happen to be left. */
-            if (past.length && (load.done || !load.count)) {
-                body.appendChild(sectionLabel('Earlier this week',
-                    load.done ? U.duration(load.done) + ' done' : ''));
-                past.forEach(iso => body.appendChild(dayBlock(iso)));
-            }
-            body.appendChild(sectionLabel('Ahead',
-                load.ahead ? U.duration(load.ahead) + ' planned' : ''));
-            ahead.forEach(iso => body.appendChild(dayBlock(iso)));
-        } else {
-            days.forEach(iso => body.appendChild(dayBlock(iso)));
+        for (let m = firstMonday; U.iso(m) <= U.iso(lastMonday); m = U.addDays(m, 7)) {
+            body.appendChild(weekBlock(m));
         }
+        // the strip shows the day loads, so it has to redraw with the list
+        shownMonday = null;
+        requestAnimationFrame(() => settle(keep, 20));
+    }
 
-        const tail = document.createElement('div');
-        tail.className = 'weekTail';
-        body.appendChild(tail);
+    /**
+     * One button per day under the header. The bar is how full the day is
+     * against a fifth of the working week, and turns amber past that.
+     */
+    function renderStrip(days, today) {
+        const strip = U.empty(r.weekStrip);
+        const dayMins = Store.settings().weekHours * 60 / 5;
 
-        /* Boot draws this page twice in quick succession, so each pass has to
-           remember its own intent: one that meant to jump to today still
-           jumps, even if an earlier callback already did it, and only a pass
-           that meant to stay put restores the old position. */
-        const wantToday = isThisWeek && !holdScroll;
-        if (wantToday) pendingScroll = today;
+        days.forEach(iso => {
+            const btn = U.clone('tpl-stripDay');
+            const sr = U.roles(btn);
+            const load = Store.dayLoad(iso);
 
-        // after layout, so the heights are real
-        requestAnimationFrame(() => {
-            sizeTail();
-            if (wantToday) scrollToDaySoon(today, 20);
-            else if (pendingScroll) scrollToDaySoon(pendingScroll, 20);
-            else r.weekBody.scrollTop = keepScroll;
+            U.setText(sr.name, U.dayShort(iso));
+            U.setText(sr.num, U.dayOfMonth(iso));
+            btn.dataset.day = iso;
+            if (iso === today) btn.classList.add('today');
+            else if (iso < today) btn.classList.add('past');
+            btn.classList.toggle('over', load.mins > dayMins);
+            btn.style.setProperty('--load', Math.min(100, Math.round(load.mins / dayMins * 100)) + '%');
+            btn.setAttribute('aria-label', U.dayName(iso) + ' ' + U.shortDate(iso) + ', ' +
+                (load.count ? dayLoadLabel(iso) : 'free'));
+            strip.appendChild(btn);
         });
+    }
+
+    /** The range a fresh visit starts with: last week, this week and next. */
+    function resetRange() {
+        const monday = thisMonday();
+        firstMonday = U.addDays(monday, -7);
+        lastMonday = U.addDays(monday, 7);
     }
 
     const api = {
         init: function (el) {
             section = el;
             r = U.roles(section);
-            monday = U.mondayOf(new Date());
+            resetRange();
 
             section.addEventListener('click', e => {
                 const act = e.target.closest('[data-act]');
                 if (!act || !section.contains(act)) return;
+                const shown = shownMonday || thisMonday();
 
-                if (act.dataset.act === 'prevWeek') { monday = U.addDays(monday, -7); render(); }
-                if (act.dataset.act === 'nextWeek') { monday = U.addDays(monday, 7); render(); }
-                if (act.dataset.act === 'thisWeek') { monday = U.mondayOf(new Date()); render(); }
+                if (act.dataset.act === 'prevWeek') goToWeek(U.addDays(shown, -7));
+                if (act.dataset.act === 'nextWeek') goToWeek(U.addDays(shown, 7));
+
+                if (act.dataset.act === 'thisWeek') {
+                    jumpTo(U.today());
+                    fill();
+                    updateHeader();
+                }
+
+                if (act.dataset.act === 'jumpToDay') {
+                    jumpTo(act.dataset.day);
+                    fill();
+                    updateHeader();
+                }
 
                 if (act.dataset.act === 'addToDay') {
                     const day = act.closest('.day');
@@ -266,21 +421,29 @@
                     });
                 }
             });
+
+            // one pass per frame, however many scroll events arrive in it
+            r.weekBody.addEventListener('scroll', () => {
+                if (scrollQueued) return;
+                scrollQueued = true;
+                requestAnimationFrame(() => {
+                    scrollQueued = false;
+                    fill();
+                    updateHeader();
+                });
+            }, { passive: true });
         },
 
-        /** Arriving from another page always lands on the live week, at today. */
+        /** Arriving from another page always lands on today. */
         show: function () {
-            monday = U.mondayOf(new Date());
-            holdScroll = false;
-            pendingScroll = U.today();
+            resetRange();
+            pendingJump = U.today();
             render();
         },
 
         /** A re-render caused by an edit keeps the scroll where it is. */
         render: function () {
-            holdScroll = true;
             render();
-            holdScroll = false;
         }
     };
 

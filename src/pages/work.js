@@ -58,10 +58,7 @@
         const el = U.clone('tpl-workCard');
         const cr = U.roles(el);
 
-        const status = Store.status(job.status);
-        W.chips.paint(cr.rail, status.tone);
-        W.chips.paint(cr.statusChip, status.tone);
-        U.setText(cr.statusText, status.label);
+        W.chips.paint(cr.rail, Store.status(job.status).tone);
         U.setText(cr.title, job.title);
 
         const client = Store.clientNameOf(job);
@@ -89,8 +86,8 @@
                 (job.planned.start ? ' · ' + job.planned.start : '')));
         }
 
-        // status: false — it already has the corner to itself
-        W.chips.fill(cr.chips, job, { status: false, extra: extra });
+        // the status leads the chip row, so the title keeps the full width
+        W.chips.fill(cr.chips, job, { extra: extra });
 
         const age = U.age(job.createdAt);
         const by = job.createdBy && job.createdBy !== Store.settings().me ? ' by ' + job.createdBy : '';
@@ -122,11 +119,14 @@
         const counts = Store.statusCounts();
         U.empty(r.filters);
 
-        const add = (id, label, count, tone) => {
+        const add = (id, label, count, status) => {
             const chip = document.createElement('button');
             chip.className = 'fchip';
             chip.dataset.filter = id;
             chip.classList.toggle('on', id === filter);
+            chip.setAttribute('aria-pressed', id === filter ? 'true' : 'false');
+            // each status chip wears its glyph, so it matches the cards below
+            if (status) W.chips.paintStatus(chip, status);
             chip.appendChild(document.createTextNode(label));
 
             const cnt = document.createElement('span');
@@ -134,14 +134,10 @@
             cnt.textContent = count;
             chip.appendChild(cnt);
 
-            // the chip wears its status colour when it is the active one
-            if (tone && id === filter) chip.style.setProperty('--tone', W.chips.tone(tone));
-            if (tone && id === filter) chip.classList.add('toned');
-
             r.filters.appendChild(chip);
         };
 
-        Store.STATUSES.forEach(st => add(st.id, st.label, counts[st.id] || 0, st.tone));
+        Store.STATUSES.forEach(st => add(st.id, st.label, counts[st.id] || 0, st));
         add('all', 'All', counts.all || 0, null);
     }
 
@@ -183,6 +179,7 @@
     function clearSearch() {
         r.search.value = '';
         query = '';
+        U.toggle(r.searchClear, false);
         render();
     }
 
@@ -202,6 +199,7 @@
 
             r.search.addEventListener('input', () => {
                 query = r.search.value.trim().toLowerCase();
+                U.toggle(r.searchClear, !!r.search.value);
                 render();
             });
 
@@ -213,13 +211,10 @@
                     sortIndex = (sortIndex + 1) % SORTS.length;
                     render();
                 }
-                if (act.dataset.act === 'toggleSearch') {
-                    const opening = r.searchWrap.hidden;
-                    U.toggle(r.searchWrap, opening);
-                    if (opening) r.search.focus();
-                    else clearSearch();
+                if (act.dataset.act === 'clearSearch') {
+                    clearSearch();
+                    r.search.focus();
                 }
-                if (act.dataset.act === 'clearSearch') clearSearch();
             });
         },
 

@@ -27,12 +27,45 @@
         if (el) el.style.setProperty('--tone', Chips.tone(varName));
     };
 
+    /**
+     * Paint an element as a status: its colour, plus data-status, which
+     * style.css turns into the glyph that fills up as a job firms up.
+     */
+    Chips.paintStatus = function (el, status) {
+        if (!el) return;
+        Chips.paint(el, status.tone);
+        el.dataset.status = status.id;
+    };
+
     /** A coloured chip. `solid` fills it instead of tinting it. */
     Chips.chip = function (text, varName, solid) {
         const chip = U.clone('tpl-tagChip');
         U.setText(U.roles(chip).text, text);
         Chips.paint(chip, varName);
         if (solid) chip.classList.add('solid');
+        return chip;
+    };
+
+    /** Where a job stands, tinted in that status's colour with its glyph. */
+    Chips.status = function (status) {
+        const chip = Chips.chip(status.label);
+        Chips.paintStatus(chip, status);
+        return chip;
+    };
+
+    const PRIORITY_LABEL = { urgent: 'Urgent', high: 'High', low: 'Low' };
+
+    /** Urgent is the only filled one; high and low are an arrow on grey. */
+    Chips.priority = function (priority) {
+        const chip = Chips.chip(PRIORITY_LABEL[priority] || priority);
+        chip.dataset.prio = priority;
+        return chip;
+    };
+
+    /** A custom tag: grey, with a dot of its own colour. */
+    Chips.tag = function (tag) {
+        const chip = Chips.chip(tag.name, Chips.tagTone(tag.color));
+        chip.classList.add('isTag');
         return chip;
     };
 
@@ -53,17 +86,13 @@
         const opts = options || {};
         const out = [];
 
-        const status = Store.status(job.status);
-        // On My week the status is the card's colour already, so repeating it
-        // as a chip would just be noise unless asked for.
-        if (opts.status !== false) out.push(Chips.chip(status.label, status.tone));
+        // First in the row: the title gets the card's full width, and the
+        // status leads the chips beneath it.
+        if (opts.status !== false) out.push(Chips.status(Store.status(job.status)));
 
-        const prioTone = Store.priorityTone(job.priority);
-        if (prioTone) out.push(Chips.chip(job.priority, prioTone));
+        if (Store.priorityTone(job.priority)) out.push(Chips.priority(job.priority));
 
-        Store.tagsOf(job).forEach(tag => {
-            out.push(Chips.chip(tag.name, Chips.tagTone(tag.color)));
-        });
+        Store.tagsOf(job).forEach(tag => out.push(Chips.tag(tag)));
 
         return out;
     };
